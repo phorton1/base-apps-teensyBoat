@@ -23,7 +23,9 @@ BEGIN
 	our @EXPORT = qw (
 		$appName
         $resources
-        $TB_WINDOW
+
+        $WIN_BOAT
+		$WIN_SEATALK
     );
 }
 
@@ -33,16 +35,16 @@ our $appName = "teensyBoat";
 # commands added to the view menu, by setting
 # the 'command_id' member on the notebook info.
 
-our ($TB_WINDOW, )= (10000..11000);
+our ($WIN_BOAT,
+	 $WIN_SEATALK) = (10000..11000);
 
 
 # Pane data that allows looking up of notebook for windows
-# Sheesh, have to add the monitor to get it to open & close
+# This is a bit archaic and the first field is not used
 
 my %pane_data = (
-	$TB_WINDOW	=> ['Command1',		'content'	],
-	#	$COMMAND2	=> ['Command2',		'output'	],
-	#	$COMMAND3	=> ['Command3 this text not used', 'content'	]
+	$WIN_BOAT		=> ['Unused String1',		'content'	],
+	$WIN_SEATALK	=> ['Unused String2',		'content'	],
 );
 
 
@@ -51,9 +53,8 @@ my %pane_data = (
 # with the base appResources
 
 my %command_data = (%{$resources->{command_data}},
-	$TB_WINDOW     => ['Main', 'Open the main teensyBoat window'],
-	# $COMMAND2     => ['Command2', 'Do something interesting2'],
-	# $COMMAND3     => ['Command3', 'Do something interesting3']
+	$WIN_BOAT     => ['Boat', 		'Open the Boat window'],
+	$WIN_SEATALK  => ['Seatalk',	'Open the Seatalk window'],
 );
 
 
@@ -92,7 +93,8 @@ my @main_menu = (
 my @file_menu = ();
 
 my @view_menu = (
-	$TB_WINDOW,
+	$WIN_BOAT,
+	$WIN_SEATALK,
 	$ID_SEPARATOR,
 );
 

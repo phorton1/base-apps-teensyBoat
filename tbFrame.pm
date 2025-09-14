@@ -18,9 +18,14 @@ use Pub::WX::Frame;
 use Win32::SerialPort;
 use Win32::Console;
 use apps::teensyBoat::tbResources;
-use apps::teensyBoat::tbWin;
 use apps::teensyBoat::tbConsole;
+use apps::teensyBoat::tbBinary;
+use apps::teensyBoat::winBoat;
+use apps::teensyBoat::winST;
+
 use base qw(Pub::WX::Frame);
+
+my $dbg_binary = 1;
 
 
 sub new
@@ -28,11 +33,12 @@ sub new
 	my ($class, $parent) = @_;
 	my $this = $class->SUPER::new($parent);
 
-	EVT_MENU($this, $TB_WINDOW, \&onCommand);
+	EVT_MENU($this, $WIN_BOAT, \&onCommand);
     EVT_IDLE($this, \&onIdle);
 
 	my $data = undef;
-	$this->createPane($TB_WINDOW,$this->{book},$data,"test237");
+	$this->createPane($WIN_BOAT,$this->{book},$data,"test237");
+	$this->createPane($WIN_SEATALK,$this->{book},$data,"test237");
 
 	# startConsole();
 	
@@ -43,6 +49,8 @@ sub new
 
 my $counter= 0;
 
+
+use apps::teensyBoat::tbBinary;
 sub onIdle
 {
     my ($this,$event) = @_;
@@ -51,9 +59,30 @@ sub onIdle
 	{
 		$counter++;
 		my $binary_data = shift @$binary_queue;
-		# display(0,0,"Frame got binary_data len=".length($binary_data));
-		my $main_window = $this->findPane($TB_WINDOW);
-		$main_window->handleBinaryData($counter,$binary_data) if $main_window;
+		my $type = unpack("S",$binary_data);		# little endian uint16_t
+		my $packet = substr($binary_data,2);
+		my $len = length($binary_data);
+		display($dbg_binary,0,"Frame got binary_packet type($type) len=$len)");
+		display_bytes($dbg_binary+1,0,"packet($len)",$packet);
+
+		if ($type == $BINARY_TYPE_BOAT)
+		{
+			my $boat_window = $this->findPane($WIN_BOAT);
+			$boat_window->handleBinaryData($counter,$type,$packet) if $boat_window;
+		}
+		elsif ($type == $BINARY_TYPE_ST)
+		{
+			# although I could just skip the length word with a substr
+			# I am exersizing binaryVarStr()
+
+			# my $offset = 0;
+			# print "Frame: ".binaryVarStr($packet,\$offset)."\r\n";
+
+			{
+			my $st_window = $this->findPane($WIN_SEATALK);
+			$st_window->handleBinaryData($counter,$type,$packet) if $st_window;
+		}
+		}
 	}
 
 	$event->RequestMore(1);
@@ -71,10 +100,8 @@ sub createPane
 	return error("No id in createPane()") if (!$id);
     $book ||= $this->{book};
 	display(0,0,"minimumFrame::createPane($id) book="._def($book)."  data="._def($data));
-	if ($id >= $TB_WINDOW && $id <= $TB_WINDOW)
-	{
-        return apps::teensyBoat::tbWin->new($this,$book,$id,"test236 $id");
-    }
+	return apps::teensyBoat::winBoat->new($this,$book,$id,"test236 $id") if $id == $WIN_BOAT;
+	return apps::teensyBoat::winST->new($this,$book,$id,"test236 $id") if $id == $WIN_SEATALK;
     return $this->SUPER::createPane($id,$book,$data,"test237");
 }
 
@@ -86,13 +113,13 @@ sub onCommand
 	# $port->write("x10\r\n") if $port && $id == $COMMAND1;
 	# $port->write("x0\r\n") if $port && $id == $COMMAND2;
 
-    my $pane = $this->findPane($id);
-	display(0,0,"$appName onCommand($id) pane="._def($pane));
-    if (!$pane)
-    {
-        my $book = $this->{book};
-		$pane = apps::teensyBoat::tbWin->new($this,$book,$id,"command($id)");
-    }
+    #	my $pane = $this->findPane($id);
+	#	display(0,0,"$appName onCommand($id) pane="._def($pane));
+    #	if (!$pane)
+    #	{
+    #	    my $book = $this->{book};
+	#		$pane = apps::teensyBoat::tbWin->new($this,$book,$id,"command($id)");
+    #	}
 }
 
 

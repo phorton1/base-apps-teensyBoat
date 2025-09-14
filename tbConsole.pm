@@ -16,6 +16,8 @@ use Pub::Utils;
 use apps::teensyBoat::tbUtils;
 use apps::teensyBoat::consoleColors;
 
+my $SET_DATE_AUTOMATICALLY = 1;
+
 
 our $COM_PORT:shared = 14;
 our $BAUD_RATE:shared = 115200;
@@ -316,6 +318,9 @@ sub console_loop
 	{
 		$port_check_time = $now;
 		$port = initComPort();
+
+		# $SET_DATE_AUTOMATICALLY
+		$port->write("DT=".now(1,1)."\r\n") if $port && $SET_DATE_AUTOMATICALLY;
 	}
 
     if ($in->GetEvents())

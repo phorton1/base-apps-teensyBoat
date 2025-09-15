@@ -14,7 +14,9 @@ use Win32::SerialPort;
 use Win32::Process::List;
 use Pub::Utils;
 use apps::teensyBoat::tbUtils;
+use apps::teensyBoat::tbServer;
 use apps::teensyBoat::consoleColors;
+
 
 my $SET_DATE_AUTOMATICALLY = 1;
 
@@ -334,7 +336,21 @@ sub console_loop
         my $char = getChar(@event);
 		if (defined($char))
 		{
-			if (ord($char) == 4)            # CTRL-D
+			if (ord($char) == 1)            # CTRL-A
+			{
+				# toggle tracking in tbServer
+				consoleWarning("turning TB_TRACKING ".($tb_tracking ? "OFF" : "ON"));
+				$tb_tracking = !$tb_tracking;
+			}
+			elsif (ord($char) == 2)            # CTRL-B
+			{
+				# clear the track in tbServer
+				consoleWarning("clearing TB_TRACK");
+				clearTBTrack();
+			}
+
+
+			elsif (ord($char) == 4)            # CTRL-D
 			{
 				$CONSOLE->Cls();    # manually clear the screen
 			}

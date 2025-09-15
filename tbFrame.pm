@@ -19,6 +19,7 @@ use Win32::SerialPort;
 use Win32::Console;
 use apps::teensyBoat::tbResources;
 use apps::teensyBoat::tbConsole;
+use apps::teensyBoat::tbServer;
 use apps::teensyBoat::tbBinary;
 use apps::teensyBoat::winBoat;
 use apps::teensyBoat::winST;
@@ -50,7 +51,7 @@ sub new
 my $counter= 0;
 
 
-use apps::teensyBoat::tbBinary;
+
 sub onIdle
 {
     my ($this,$event) = @_;

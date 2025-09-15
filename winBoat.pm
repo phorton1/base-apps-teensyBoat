@@ -15,6 +15,7 @@ use Pub::Utils;
 use Pub::WX::Window;
 use apps::teensyBoat::tbUtils;
 use apps::teensyBoat::tbBinary;
+use apps::teensyBoat::tbServer;
 use base qw(Wx::Window MyWX::Window);
 
 my $counter_ctrl;
@@ -70,6 +71,12 @@ my $boat_data = [
 	{ row=>10,  col=>2,		name=>'date',				type=>'FixStr',		fxn_param=>20 },
 
 ];
+
+my $boat_fields = {};
+for my $rec (@$boat_data)
+{
+	$boat_fields->{$rec->{name}} = $rec;
+}
 
 
 
@@ -142,6 +149,8 @@ sub handleBinaryData
 		my $value = $fxn->($packet,\$offset,$data->{fxn_param});
 		# display(0,1,pad($name,20)." offset($dbg_offset) fxn=$fxn_name value=$value");
 		
+		$data->{raw_value} = $value;
+
 		if ($data->{latlon})
 		{
 			$value = $SHOW_DEGREE_MINUTES ?
@@ -171,6 +180,11 @@ sub handleBinaryData
 		}
 	}
 
+	updateTBServer({
+		'heading' => $boat_fields->{cog}->{raw_value},
+		'latitude' => $boat_fields->{latitude}->{raw_value},
+		'longitude' => $boat_fields->{longitude}->{raw_value},
+	});
 
 }
 

@@ -437,6 +437,8 @@ sub checkInTimeout
 }
 
 
+my $binary_packet_counter = 0;
+
 
 sub handleComBytes
 {
@@ -470,8 +472,9 @@ sub handleComBytes
 			$binary_time = $now;
 			if ($binary_got == $binary_len)
 			{
+				$binary_packet_counter++;
 				# print "binary_got=$binary_len=".length($binary_data)."\n";
-				# display_bytes(0,0,"binary_data($binary_len)",$binary_data);
+				# display_bytes(0,0,"binary_packet($binary_packet_counter) len($binary_len)",$binary_data);
 				push @$binary_queue,$binary_data;
 				initBinaryParser();
 			}

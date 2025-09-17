@@ -103,12 +103,6 @@ sub onIdle
 		}
 		elsif ($type == $BINARY_TYPE_ST)
 		{
-			# although I could just skip the length word with a substr
-			# I am exersizing binaryVarStr()
-
-			# my $offset = 0;
-			# print "Frame: ".binaryVarStr($packet,\$offset)."\r\n";
-
 			my $st_window = $this->findPane($WIN_SEATALK);
 			$st_window->handleBinaryData($counter,$type,$packet) if $st_window;
 		}

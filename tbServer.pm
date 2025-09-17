@@ -394,10 +394,6 @@ sub kml_footer
 # main
 #--------------------------------------------------------
 
-# Pub::ServerUtils::initServerUtils(0,'');
-	# 0 == DOESNT NEEDS WIFI
-	# '' == LINUX PID FILE
-
 display(0,0,"starting tbServer");
 my $http_server = apps::teensyBoat::tbServer->new();
 $http_server->start();
@@ -488,7 +484,7 @@ if (0)
 		}
 	}
 
-}	// 0
+}	# 0
 
 
 1;

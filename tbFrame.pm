@@ -71,8 +71,6 @@ sub new
 	$this->createPane($WIN_BOAT,$this->{book},$data,"test237");
 	$this->createPane($WIN_SEATALK,$this->{book},$data,"test237");
 
-	# startConsole();
-	
 	return $this;
 }
 
@@ -127,8 +125,6 @@ sub onIdle
 sub createPane
 	# factory method must be implemented if derived
     # classes want their windows restored on opening.
-    # The example could be much more complex with
-    # config_strs on the xyz_window, instances, etc.
 {
 	my ($this,$id,$book,$data) = @_;
 	return error("No id in createPane()") if (!$id);
@@ -144,16 +140,17 @@ sub onCommand
 {
     my ($this,$event) = @_;
     my $id = $event->GetId();
-	# $port->write("x10\r\n") if $port && $id == $COMMAND1;
-	# $port->write("x0\r\n") if $port && $id == $COMMAND2;
-
-    #	my $pane = $this->findPane($id);
-	#	display(0,0,"$appName onCommand($id) pane="._def($pane));
-    #	if (!$pane)
-    #	{
-    #	    my $book = $this->{book};
-	#		$pane = apps::teensyBoat::tbWin->new($this,$book,$id,"command($id)");
-    #	}
+	if ($id == $WIN_BOAT ||
+		$id == $WIN_SEATALK)
+	{
+    	my $pane = $this->findPane($id);
+		display(0,0,"$appName onCommand($id) pane="._def($pane));
+    	if (!$pane)
+    	{
+    	    my $book = $this->{book};
+			$pane = apps::teensyBoat::tbWin->new($this,$book,$id,"command($id)");
+    	}
+	}
 }
 
 

@@ -65,6 +65,7 @@ sub new
 	my $this = $class->SUPER::new($parent);
 
 	EVT_MENU($this, $WIN_BOAT, \&onCommand);
+	EVT_MENU($this, $WIN_SEATALK, \&onCommand);
     EVT_IDLE($this, \&onIdle);
 
 	my $data = undef;
@@ -136,6 +137,7 @@ sub createPane
 }
 
 
+
 sub onCommand
 {
     my ($this,$event) = @_;
@@ -145,14 +147,9 @@ sub onCommand
 	{
     	my $pane = $this->findPane($id);
 		display(0,0,"$appName onCommand($id) pane="._def($pane));
-    	if (!$pane)
-    	{
-    	    my $book = $this->{book};
-			$pane = apps::teensyBoat::tbWin->new($this,$book,$id,"command($id)");
-    	}
+    	$this->createPane($id) if !$pane;
 	}
 }
-
 
 
 

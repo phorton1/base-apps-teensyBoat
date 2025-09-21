@@ -37,7 +37,7 @@ my $CHANGE_TIMEOUT = 3;
 
 
 my $dbg_ctrl = 0;		# life cycle
-my $dbg_draw = 1;		# drawing
+my $dbg_draw = 0;		# drawing
 my $dbg_data = 1;		# data
 
 
@@ -56,15 +56,17 @@ sub new
 
 	display($dbg_ctrl,0,"new tbListCtrl($TOP_MARGIN)");
 
-    my $this = $class->SUPER::new($parent,-1,[0,$TOP_MARGIN]); # ,[500,500],wxFULL_REPAINT_ON_RESIZE);	# [$w,$h]); # ,wxVSCROLL | wxHSCROLL);
+	my $sz = $parent->GetSize();
+	my $width = $sz->GetWidth();
+	my $height = $sz->GetHeight() - $TOP_MARGIN;
+    my $this = $class->SUPER::new($parent,-1,[0,$TOP_MARGIN],[$width,$height]);
 	bless $this,$class;
 
     $this->{parent} = $parent;
 	$this->{frame} = $parent->{frame};
 	$this->{columns} = $columns;
 	$this->{data} = $data;
-
-	$this->{update_rect} = Wx::Rect->new(0,0,0,0);
+	$this->{update_rect} = Wx::Rect->new(0,0,$width,$height);
 	$this->{scroll_pos} = 0;
 
 	my $dc = Wx::ClientDC->new($this);
@@ -81,11 +83,13 @@ sub new
 		$xpos += $col_width;
 	}
 
-	$this->SetBackgroundColour(wxWHITE);
+	$this->SetVirtualSize([$width,$height]);
 	$this->SetScrollRate(0,$ROW_HEIGHT);
+	$this->SetBackgroundColour(wxWHITE);
 	$this->SetBackgroundStyle(wxBG_STYLE_CUSTOM);
 		# This is important or else WX clears the client region
 		# before calling onPaint.
+
 
 	EVT_SIZE($this,\&onSize);
 	EVT_IDLE($this,\&onIdle);
@@ -96,14 +100,19 @@ sub new
 }
 
 
+
 sub onSize
-	# We redraw the entire screen on a resize.
+	# This method also called explicitly to invalidate
+	# the entire screen and redraw it.
 {
 	my ($this,$event) = @_;
 	my $sz = $this->GetSize();
 	my $width = $sz->GetWidth();
 	my $height = $sz->GetHeight();
+
+	display(0,0,"onSize()");
 	$this->{update_rect} = Wx::Rect->new(0,$this->{scroll_pos} * $ROW_HEIGHT,$width,$height);
+	$this->Update();
 }
 
 
@@ -245,6 +254,7 @@ sub notifyDataChanged
 sub onPaint
 {
 	my ($this, $event) = @_;
+	
  	my $sz = $this->GetSize();
     my $width = $sz->GetWidth();
     my $height = $sz->GetHeight();

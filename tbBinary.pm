@@ -7,24 +7,14 @@
 package apps::teensyBoat::tbBinary;
 use strict;
 use warnings;
+use apps::teensyBoat::tbUtils;
 use Pub::Utils;
-
-our $BINARY_TYPE_PROG = 0x0001;
-our $BINARY_TYPE_BOAT = 0x0002;
-our $BINARY_TYPE_ST	  = 0x0004;
-our $BINARY_TYPE_0183 = 0x0008;
 
 
 BEGIN
 {
  	use Exporter qw( import );
 	our @EXPORT = qw(
-
-		$BINARY_TYPE_PROG
-		$BINARY_TYPE_BOAT
-		$BINARY_TYPE_ST
-		$BINARY_TYPE_0183
-
 		binaryByte
 		binaryInt16
 		binaryUint16

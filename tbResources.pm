@@ -24,6 +24,7 @@ BEGIN
 		$appName
         $resources
 
+		$WIN_PROG
         $WIN_BOAT
 		$WIN_SEATALK
     );
@@ -35,7 +36,8 @@ our $appName = "teensyBoat";
 # commands added to the view menu, by setting
 # the 'command_id' member on the notebook info.
 
-our ($WIN_BOAT,
+our ($WIN_PROG,
+	 $WIN_BOAT,
 	 $WIN_SEATALK) = (10000..11000);
 
 
@@ -43,6 +45,7 @@ our ($WIN_BOAT,
 # This is a bit archaic and the first field is not used
 
 my %pane_data = (
+	$WIN_PROG		=> ['Unused String1',		'content'	],
 	$WIN_BOAT		=> ['Unused String1',		'content'	],
 	$WIN_SEATALK	=> ['Unused String2',		'content'	],
 );
@@ -53,6 +56,7 @@ my %pane_data = (
 # with the base appResources
 
 my %command_data = (%{$resources->{command_data}},
+	$WIN_PROG     => ['Prog', 		'Open the Program Control window'],
 	$WIN_BOAT     => ['Boat', 		'Open the Boat window'],
 	$WIN_SEATALK  => ['Seatalk',	'Open the Seatalk window'],
 );
@@ -93,6 +97,7 @@ my @main_menu = (
 my @file_menu = ();
 
 my @view_menu = (
+	$WIN_PROG,
 	$WIN_BOAT,
 	$WIN_SEATALK,
 	$ID_SEPARATOR,

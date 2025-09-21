@@ -18,7 +18,8 @@ use apps::teensyBoat::tbServer;
 use apps::teensyBoat::consoleColors;
 
 
-my $SET_DATE_AUTOMATICALLY = 1;
+my $SET_DATE_AUTO 			= 1;
+my $GET_INST_STATE_AUTO 	= 1;
 
 
 our $COM_PORT:shared = 14;
@@ -32,6 +33,8 @@ BEGIN
 		$COM_PORT
 		$BAUD_RATE
 		$binary_queue
+
+		sendTeensyCommand
 	);
 }
 
@@ -40,7 +43,15 @@ our $binary_queue:shared = shared_clone([]);
 my $port;
 my $port_check_time = 0;
 my $in_arduino_build:shared = 0;
+my $command_queue:shared = shared_clone([]);
 
+
+sub sendTeensyCommand
+{
+	my ($command) = @_;
+	display(0,0,"queue teensyCommand($command)");
+	push @$command_queue,$command;
+}
 
 
 
@@ -292,6 +303,21 @@ sub console_loop
         $port = undef;
     }
 
+	# dequeue and send next pending command
+
+	if (@$command_queue)
+	{
+		my $command = shift @$command_queue;
+		if (!$port)
+		{
+			error("commCommand($command) but COM$COM_PORT is not open!");
+			return;
+		}
+		display(0,0,"send teensyCommand($command)");
+		$port->write($command."\r\n");
+	}
+
+	# read comm port
 
 	my $now = time();
 	if ($port)
@@ -316,15 +342,24 @@ sub console_loop
 			checkInTimeout();
 		}
 	}
+
+	# open com port
+
 	elsif (!$in_arduino_build && !$port && $now > $port_check_time + 3)
 	{
 		$port_check_time = $now;
 		$port = initComPort();
 
-		# $SET_DATE_AUTOMATICALLY
-		$port->write("DT=".now(1,1)."\r\n") if $port && $SET_DATE_AUTOMATICALLY;
+		# Automatic communications with newly opened teensy USB Serial port
+		if ($port)
+		{
+			$port->write("DT=".now(1,1)."\r\n") if $port && $SET_DATE_AUTO;
+			$port->write("STATE\r\n") if $GET_INST_STATE_AUTO;
+		}
 	}
 
+	# read console input events
+	
     if ($in->GetEvents())
     {
         my @event = $in->Input();

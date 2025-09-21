@@ -2,7 +2,8 @@
 #-------------------------------------------------------------------------
 # winBoat.pm
 #-------------------------------------------------------------------------
-# The main TB window, can't be closed
+# The Boat (simulator) window.
+# Shows and allows modifications to the state of the boat simulator.
 
 
 package apps::teensyBoat::winBoat;

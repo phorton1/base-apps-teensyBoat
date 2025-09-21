@@ -62,6 +62,8 @@ sub new
 	display(0,0,"winST::new() called");
 	$this->MyWindow($frame,$book,$id,"Seatalk");
 
+	$slots = {};
+
 	$frame_counter_ctrl = Wx::StaticText->new($this,-1,"",[10,10]);
 	$st_counter_ctrl = Wx::StaticText->new($this,-1,"",[50,10]);
 	$this->{list_ctrl} = apps::teensyBoat::tbListCtrl->new($this,$TOP_MARGIN,$columns,$slots);
@@ -143,6 +145,21 @@ sub handleBinaryData
 	}
 
 	$this->{list_ctrl}->notifyDataChanged($st);
+}
+
+
+sub onActivate
+	# Called by Pub::WX::FrameBase when the window is made active
+{
+	my ($this) = @_;
+	display(0,0,"onActivate()");
+	$this->Update();
+
+	# The list control's onSize() method invalidates
+	# the entire screen (sets the update rec to the
+	# whole client area)
+	
+	$this->{list_ctrl}->onSize() if $this->{list_ctrl};
 }
 
 

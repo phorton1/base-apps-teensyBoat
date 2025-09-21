@@ -17,10 +17,12 @@ use Pub::Utils;
 use Pub::WX::Frame;
 use Win32::SerialPort;
 use Win32::Console;
+use apps::teensyBoat::tbUtils;
 use apps::teensyBoat::tbResources;
 use apps::teensyBoat::tbConsole;
 use apps::teensyBoat::tbServer;
 use apps::teensyBoat::tbBinary;
+use apps::teensyBoat::winProg;
 use apps::teensyBoat::winBoat;
 use apps::teensyBoat::winST;
 
@@ -64,6 +66,7 @@ sub new
 	my ($class, $parent) = @_;
 	my $this = $class->SUPER::new($parent);
 
+	EVT_MENU($this, $WIN_PROG, \&onCommand);
 	EVT_MENU($this, $WIN_BOAT, \&onCommand);
 	EVT_MENU($this, $WIN_SEATALK, \&onCommand);
     EVT_IDLE($this, \&onIdle);
@@ -71,6 +74,7 @@ sub new
 	my $data = undef;
 	$this->createPane($WIN_BOAT,$this->{book},$data,"test237");
 	$this->createPane($WIN_SEATALK,$this->{book},$data,"test237");
+	$this->createPane($WIN_PROG,$this->{book},$data,"test237");
 
 	return $this;
 }
@@ -95,7 +99,12 @@ sub onIdle
 		display($dbg_binary,0,"Frame got binary_packet type($type) len=$len)");
 		display_bytes($dbg_binary+1,0,"packet($len)",$packet);
 
-		if ($type == $BINARY_TYPE_BOAT)
+		if ($type == $BINARY_TYPE_PROG)
+		{
+			my $prog_window = $this->findPane($WIN_PROG);
+			$prog_window->handleBinaryData($counter,$type,$packet) if $prog_window;
+		}
+		elsif ($type == $BINARY_TYPE_BOAT)
 		{
 			my $boat_window = $this->findPane($WIN_BOAT);
 			$boat_window->handleBinaryData($counter,$type,$packet) if $boat_window;
@@ -131,6 +140,7 @@ sub createPane
 	return error("No id in createPane()") if (!$id);
     $book ||= $this->{book};
 	display(0,0,"minimumFrame::createPane($id) book="._def($book)."  data="._def($data));
+	return apps::teensyBoat::winProg->new($this,$book,$id,"test236 $id") if $id == $WIN_PROG;
 	return apps::teensyBoat::winBoat->new($this,$book,$id,"test236 $id") if $id == $WIN_BOAT;
 	return apps::teensyBoat::winST->new($this,$book,$id,"test236 $id") if $id == $WIN_SEATALK;
     return $this->SUPER::createPane($id,$book,$data,"test237");
@@ -142,7 +152,8 @@ sub onCommand
 {
     my ($this,$event) = @_;
     my $id = $event->GetId();
-	if ($id == $WIN_BOAT ||
+	if ($id == $WIN_PROG ||
+		$id == $WIN_BOAT ||
 		$id == $WIN_SEATALK)
 	{
     	my $pane = $this->findPane($id);

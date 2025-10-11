@@ -37,7 +37,7 @@ BEGIN
 
 my $EOL = "\r\n";
 
-my $SERVER_PORT = 9882;
+my $SERVER_PORT = 9881;
 # our $SERVER_URL = "http://localhost:$SERVER_PORT";
 my $src_dir = "/base/apps/teensyBoat";
 

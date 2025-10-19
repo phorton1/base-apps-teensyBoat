@@ -36,40 +36,55 @@ my $boat_data = [
 	{ row=>0,	col=>0,		name=>'running',			type=>'Byte' },
 	{ row=>1,	col=>0,		name=>'autopilot',			type=>'Byte' },
 	{ row=>2,	col=>0,		name=>'routing',			type=>'Byte' },
-	{ row=>9,	col=>0,		name=>'arrived',			type=>'Byte' },
-	{ row=>4,	col=>0,		name=>'start_wp',   		type=>'Byte',		},
-	{ row=>5,	col=>0,		name=>'name',				type=>'FixStr',		fxn_param=>8 },		# fixed length 8
-	{ row=>6,	col=>0,		name=>'target_wp',   		type=>'Byte',		},
-	{ row=>7,	col=>0,		name=>'name',				type=>'FixStr',		fxn_param=>8 },		# fixed length 8
-	{ row=>3,	col=>1,		name=>'depth',				type=>'Float',		prec=>1,	},
-	{ row=>4,	col=>1,		name=>'sog',		 		type=>'Float',		prec=>1,	},
-	{ row=>5,	col=>1,		name=>'cog',				type=>'Float',		prec=>1,	},
-	{ row=>6,	col=>1,		name=>'wind_angle',       	type=>'Float',		prec=>1,	},
-	{ row=>7,	col=>1,		name=>'wind_speed',       	type=>'Float',		prec=>1,	},
-	{ row=>0,	col=>1,		name=>'latitude',         	type=>'Double',		latlon=>1,	},
-	{ row=>1,	col=>1,		name=>'longitude',        	type=>'Double',		latlon=>1,	},
-	{ row=>9,	col=>1,		name=>'app_wind_angle',   	type=>'Float',		prec=>1,	},
-	{ row=>10,	col=>1,		name=>'app_wind_speed',   	type=>'Float',		prec=>1,	},
+	{ row=>3,	col=>0,		name=>'arrived',			type=>'Byte' },
+
+	{ row=>10,	col=>0,		name=>'start_wp',   		type=>'Byte',		},
+	{ row=>11,	col=>0,		name=>'name',				type=>'FixStr',		fxn_param=>8 },		# fixed length 8
+	{ row=>12,	col=>0,		name=>'target_wp',   		type=>'Byte',		},
+	{ row=>13,	col=>0,		name=>'name',				type=>'FixStr',		fxn_param=>8 },		# fixed length 8
+	{ row=>14,	col=>0,		name=>'head_to_wp',   		type=>'Float',		prec=>1,	},
+	{ row=>15,	col=>0,		name=>'dist_to_wp',   		type=>'Float',		prec=>4,	},
+
+	{ row=>17,	col=>0,		name=>'desired_heading',	type=>'Float',		prec=>1,	},
+
+	{ row=>0,	col=>1,		name=>'depth',				type=>'Float',		prec=>1,	},
+	{ row=>1,	col=>1,		name=>'heading',		 	type=>'Float',		prec=>1,	},
+	{ row=>2,	col=>1,		name=>'water_speed',		type=>'Float',		prec=>1,	},
+	{ row=>3,	col=>1,		name=>'current_set',		type=>'Float',		prec=>1,	},
+	{ row=>4,	col=>1,		name=>'current_drift',		type=>'Float',		prec=>1,	},
+	{ row=>5,	col=>1,		name=>'wind_angle',       	type=>'Float',		prec=>1,	},
+	{ row=>6,	col=>1,		name=>'wind_speed',       	type=>'Float',		prec=>1,	},
+	{ row=>7,	col=>1,		name=>'latitude',         	type=>'Double',		latlon=>1,	},
+	{ row=>8,	col=>1,		name=>'longitude',        	type=>'Double',		latlon=>1,	},
+
+	{ row=>10,	col=>1,		name=>'sog',		 		type=>'Float',		prec=>1,	},
+	{ row=>11,	col=>1,		name=>'cog',				type=>'Float',		prec=>1,	},
+	{ row=>12,	col=>1,		name=>'app_wind_angle',   	type=>'Float',		prec=>1,	},
+	{ row=>13,	col=>1,		name=>'app_wind_speed',   	type=>'Float',		prec=>1,	},
+	{ row=>14,	col=>1,		name=>'estimated_set',   	type=>'Float',		prec=>4,	},
+	{ row=>15,	col=>1,		name=>'estimated_drift',   	type=>'Float',		prec=>4,	},
+	{ row=>16,	col=>1,		name=>'cross_track_error',  type=>'Float',		prec=>4,	},
+	{ row=>17,	col=>1,		name=>'closest',		    type=>'Uint16',		},
+
 	{ row=>0,	col=>2,		name=>'rpm',              	type=>'Uint16',		prec=>0,	},
 	{ row=>1,	col=>2,		name=>'oil_pressure',     	type=>'Uint16',		prec=>0,	},
 	{ row=>2,	col=>2,		name=>'oil_temp',         	type=>'Uint16',		prec=>0,	},
 	{ row=>3,	col=>2,		name=>'coolant_temp',     	type=>'Uint16',		prec=>0,	},
 	{ row=>4,	col=>2,		name=>'alt_voltage',      	type=>'Float',		prec=>1,	},
-	{ row=>6,	col=>2,		name=>'fuel_rate',        	type=>'Float',		prec=>1,	},
-	{ row=>7,	col=>2,		name=>'fuel_level1',      	type=>'Float',		prec=>1,	},
-	{ row=>8,	col=>2,		name=>'fuel_level2',      	type=>'Float',		prec=>1,	},
-	{ row=>0,	col=>3,		name=>'genset',           	type=>'Byte',		},
-	{ row=>1,	col=>3,		name=>'gen_rpm',          	type=>'Uint16',		prec=>0,	},
-	{ row=>2,	col=>3,		name=>'gen_oil_pressure', 	type=>'Uint16',		prec=>0,	},
-	{ row=>3,	col=>3,		name=>'gen_cool_temp',    	type=>'Uint16',		prec=>0,	},
-	{ row=>4,	col=>3,		name=>'gen_voltage',      	type=>'Float',		prec=>1,	},
-	{ row=>5,	col=>3,		name=>'gen_freq',         	type=>'Byte',		prec=>0,	},
-	{ row=>-1.5,col=>1,		name=>'update_num',       	type=>'Uint32',		},
-	{ row=>8,	col=>0,		name=>'closest',		    type=>'Uint16',		},
+	{ row=>5,	col=>2,		name=>'fuel_rate',        	type=>'Float',		prec=>1,	},
+	{ row=>6,	col=>2,		name=>'fuel_level1',      	type=>'Float',		prec=>1,	},
+	{ row=>7,	col=>2,		name=>'fuel_level2',      	type=>'Float',		prec=>1,	},
 
-	{ row=>10,	col=>0,		name=>'head_to_wp',   		type=>'Float',		prec=>1,	},
-	{ row=>11,	col=>0,		name=>'dist_to_wp',   		type=>'Float',		prec=>2,	},
-	{ row=>10,  col=>2,		name=>'date',				type=>'FixStr',		fxn_param=>20 },
+	{ row=>10,	col=>2,		name=>'genset',           	type=>'Byte',		},
+	{ row=>11,	col=>2,		name=>'gen_rpm',          	type=>'Uint16',		prec=>0,	},
+	{ row=>12,	col=>2,		name=>'gen_oil_pressure', 	type=>'Uint16',		prec=>0,	},
+	{ row=>13,	col=>2,		name=>'gen_cool_temp',    	type=>'Uint16',		prec=>0,	},
+	{ row=>14,	col=>2,		name=>'gen_voltage',      	type=>'Float',		prec=>1,	},
+	{ row=>15,	col=>2,		name=>'gen_freq',         	type=>'Byte',		prec=>0,	},
+
+	{ row=>-1.5,col=>1,		name=>'update_num',       	type=>'Uint32',		},
+
+	{ row=>-1.5,  col=>2,	name=>'date',				type=>'FixStr',		fxn_param=>20 },
 
 ];
 

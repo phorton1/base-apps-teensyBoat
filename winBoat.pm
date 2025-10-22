@@ -6,7 +6,7 @@
 # Shows and allows modifications to the state of the boat simulator.
 
 
-package apps::teensyBoat::winBoat;
+package winBoat;
 use strict;
 use warnings;
 use Wx qw(:everything);
@@ -14,10 +14,13 @@ use Wx::Event qw(
 	EVT_CLOSE );
 use Pub::Utils;
 use Pub::WX::Window;
-use apps::teensyBoat::tbUtils;
-use apps::teensyBoat::tbBinary;
-use apps::teensyBoat::tbServer;
-use base qw(Wx::Window MyWX::Window);
+use tbUtils;
+use tbBinary;
+use tbServer;
+use base qw(Pub::WX::Window);
+
+my $dbg_win = 0;
+
 
 my $counter_ctrl;
 
@@ -100,8 +103,8 @@ sub new
 {
 	my ($class,$frame,$book,$id,$data) = @_;
 	my $this = $class->SUPER::new($book,$id);
-	display(0,0,"winBoat::new() called");
-	$this->MyWindow($frame,$book,$id,"Boat");
+	display($dbg_win,0,"winBoat::new() called");
+	$this->MyWindow($frame,$book,$id,"Boat",$data);
 
 	$counter_ctrl = Wx::StaticText->new($this,-1,"",[10,10]);
 
@@ -147,8 +150,8 @@ sub new
 sub handleBinaryData
 {
 	my ($this,$counter,$type,$packet) = @_;
-	# display(0,0,"handleBinaryData($counter) len=".length($binary_data));
-	# display_bytes(0,0,"packet",$packet);
+	# display($dbg_win,0,"handleBinaryData($counter) len=".length($binary_data));
+	# display_bytes($dbg_win+1,0,"packet",$packet);
 
 	my $show_data = unpack("H*",$packet);
 	$counter_ctrl->SetLabel("packet($counter)");
@@ -163,7 +166,7 @@ sub handleBinaryData
 		my $fxn = \&{$fxn_name};
 		# my $dbg_offset = $offset;
 		my $value = $fxn->($packet,\$offset,$data->{fxn_param});
-		# display(0,1,pad($name,20)." offset($dbg_offset) fxn=$fxn_name value=$value");
+		# display($dbg_win+1,1,pad($name,20)." offset($dbg_offset) fxn=$fxn_name value=$value");
 		
 		$data->{raw_value} = $value;
 
@@ -200,7 +203,7 @@ sub handleBinaryData
 		'heading' => $boat_fields->{cog}->{raw_value},
 		'latitude' => $boat_fields->{latitude}->{raw_value},
 		'longitude' => $boat_fields->{longitude}->{raw_value},
-	});
+	}) if $WITH_TB_SERVER;
 
 }
 

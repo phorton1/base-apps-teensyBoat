@@ -4,7 +4,7 @@
 #-------------------------------------------------------------------------
 
 
-package apps::teensyBoat::winST;
+package winST;
 use strict;
 use warnings;
 use Time::HiRes qw(time);
@@ -13,10 +13,10 @@ use Wx::Event qw(
 	EVT_SIZE );
 use Pub::Utils;
 use Pub::WX::Window;
-use apps::teensyBoat::tbUtils;
-use apps::teensyBoat::tbBinary;
-use apps::teensyBoat::tbListCtrl;
-use base qw(Wx::Window MyWX::Window);
+use tbUtils;
+use tbBinary;
+use tbListCtrl;
+use base qw(Pub::WX::Window);
 
 my $CHANGE_TIMEOUT = 2;
 my $TOP_MARGIN = 40;
@@ -60,13 +60,13 @@ sub new
 	my ($class,$frame,$book,$id,$data) = @_;
 	my $this = $class->SUPER::new($book,$id);
 	display(0,0,"winST::new() called");
-	$this->MyWindow($frame,$book,$id,"Seatalk");
+	$this->MyWindow($frame,$book,$id,"Seatalk",$data);
 
 	$slots = {};
 
 	$frame_counter_ctrl = Wx::StaticText->new($this,-1,"",[10,10]);
 	$st_counter_ctrl = Wx::StaticText->new($this,-1,"",[50,10]);
-	$this->{list_ctrl} = apps::teensyBoat::tbListCtrl->new($this,$TOP_MARGIN,$columns,$slots);
+	$this->{list_ctrl} = tbListCtrl->new($this,$TOP_MARGIN,$columns,$slots);
 
 	EVT_SIZE($this, \&onSize);
 

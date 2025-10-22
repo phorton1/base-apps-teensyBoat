@@ -3,13 +3,17 @@
 # tbUtils.pm
 #-------------------------------------------------------------------------
 
-package apps::teensyBoat::tbUtils;
+package tbUtils;
 use strict;
 use warnings;
 use threads;
 use threads::shared;
-use apps::teensyBoat::tbResources;
 use Pub::Utils;
+use Pub::WX::AppConfig;
+use tbResources;
+
+
+our $WITH_TB_SERVER = 0;
 
 our $SHOW_DEGREE_MINUTES = 1;
 
@@ -17,6 +21,8 @@ BEGIN
 {
  	use Exporter qw( import );
 	our @EXPORT = qw(
+
+		$WITH_TB_SERVER
 
 		$PORT_SEATALK
 	    $PORT_0183
@@ -87,6 +93,10 @@ Pub::Utils::initUtils();
 # createSTDOUTSemaphore("buddySTDOUT");
 setStandardTempDir($appName);
 setStandardDataDir($appName);
+
+
+$ini_file = "$temp_dir/$appName.ini";
+
 
 
 #--------------------------------

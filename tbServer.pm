@@ -1,19 +1,18 @@
 #!/usr/bin/perl
 #-----------------------------------------------------
-# apps::teensyBoat::tbServer.pm
+# tbServer.pm
 #-----------------------------------------------------
 # An HTTP Server for teensyBoat.
 # Provides realtime updates via kml to Google Earth network links.
 
 
-package apps::teensyBoat::tbServer;
+package tbServer;
 use strict;
 use warnings;
 use threads;
 use threads::shared;
 use Time::HiRes qw(time);
 use Math::Trig qw(deg2rad );
-# use HTML::Entities;
 use Pub::Utils;
 # use Pub::Prefs;
 # use Pub::ServerUtils;		# only if wifi
@@ -388,16 +387,6 @@ sub kml_footer
 		"</Document>$EOL".
 		"</kml>$EOL";
 }
-
-
-#--------------------------------------------------------
-# main
-#--------------------------------------------------------
-
-display(0,0,"starting tbServer");
-my $http_server = apps::teensyBoat::tbServer->new();
-$http_server->start();
-display(0,0,"finished starting http_server");
 
 
 #---------------------------------------------------------

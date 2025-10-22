@@ -3,18 +3,12 @@
 # tbResources.pm
 #-------------------------------------------------------------------------
 
-package apps::teensyBoat::tbResources;
+package tbResources;
 use strict;
 use warnings;
 use threads;
 use threads::shared;
 use Pub::WX::Resources;
-use Pub::WX::AppConfig;
-
-# My::Utils::USE_WIN_CONSOLE_COLORS();
-
-
-$ini_file = "/junk/minimum.ini";
 
 
 BEGIN

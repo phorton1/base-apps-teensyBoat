@@ -4,11 +4,11 @@
 #-------------------------------------------------------------------------
 # binary unpacking routes for teensyBoat.pm
 
-package apps::teensyBoat::tbBinary;
+package tbBinary;
 use strict;
 use warnings;
-use apps::teensyBoat::tbUtils;
 use Pub::Utils;
+use tbUtils;
 
 
 BEGIN

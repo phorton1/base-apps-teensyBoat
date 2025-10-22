@@ -3,7 +3,7 @@
 # the console for the teensyBoat.pm application
 #-------------------------------------------------------------------------
 
-package apps::teensyBoat::tbConsole;
+package tbConsole;
 use strict;
 use warnings;
 use threads;
@@ -13,9 +13,12 @@ use Win32::Console;
 use Win32::SerialPort;
 use Win32::Process::List;
 use Pub::Utils;
-use apps::teensyBoat::tbUtils;
-use apps::teensyBoat::tbServer;
-use apps::teensyBoat::consoleColors;
+use tbUtils;
+use tbServer;
+use consoleColors;
+
+
+my $dbg_teensy_command = 0;
 
 
 my $SET_DATE_AUTO 			= 1;
@@ -49,7 +52,7 @@ my $command_queue:shared = shared_clone([]);
 sub sendTeensyCommand
 {
 	my ($command) = @_;
-	display(0,0,"queue teensyCommand($command)");
+	display($dbg_teensy_command+1,0,"queue teensyCommand($command)");
 	push @$command_queue,$command;
 }
 
@@ -313,7 +316,7 @@ sub console_loop
 			error("commCommand($command) but COM$COM_PORT is not open!");
 			return;
 		}
-		display(0,0,"send teensyCommand($command)");
+		display($dbg_teensy_command,0,"send teensyCommand($command)");
 		$port->write($command."\r\n");
 	}
 
@@ -353,8 +356,8 @@ sub console_loop
 		# Automatic communications with newly opened teensy USB Serial port
 		if ($port)
 		{
-			$port->write("DT=".now(1,1)."\r\n") if $port && $SET_DATE_AUTO;
-			$port->write("STATE\r\n") if $GET_INST_STATE_AUTO;
+			sendTeensyCommand("DT=".now(1,1)) if $port && $SET_DATE_AUTO;
+			sendTeensyCommand("STATE") if $GET_INST_STATE_AUTO;
 		}
 	}
 
@@ -371,23 +374,21 @@ sub console_loop
         my $char = getChar(@event);
 		if (defined($char))
 		{
-			if (ord($char) == 1)            # CTRL-A
+			if ($WITH_TB_SERVER && ord($char) == 1)            # CTRL-A
 			{
 				# toggle tracking in tbServer
 				consoleWarning("turning TB_TRACKING ".($tb_tracking ? "OFF" : "ON"));
 				$tb_tracking = !$tb_tracking;
 			}
-			elsif (ord($char) == 2)            # CTRL-B
+			elsif ($WITH_TB_SERVER && ord($char) == 2)            # CTRL-B
 			{
 				# clear the track in tbServer
 				consoleWarning("clearing TB_TRACK");
 				clearTBTrack();
 			}
-
-
 			elsif (ord($char) == 4)            # CTRL-D
 			{
-				$CONSOLE->Cls();    # manually clear the screen
+				clearConsole();		# in Pub::Utils
 			}
 			else
 			{

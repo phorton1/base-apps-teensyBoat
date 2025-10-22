@@ -15,12 +15,11 @@
 
 
 
-package apps::teensyBoat::tbListCtrl;
+package tbListCtrl;
 use strict;
 use warnings;
 use threads;
 use threads::shared;
-# use Win32::GUI;
 use Wx qw(:everything);
 use Wx::Event qw(
 	EVT_SIZE
@@ -28,7 +27,6 @@ use Wx::Event qw(
 	EVT_IDLE
 	EVT_SCROLLWIN );
 use Pub::Utils;
-
 use base qw(Wx::ScrolledWindow);
 
 
@@ -37,7 +35,7 @@ my $CHANGE_TIMEOUT = 3;
 
 
 my $dbg_ctrl = 0;		# life cycle
-my $dbg_draw = 0;		# drawing
+my $dbg_draw = 1;		# drawing
 my $dbg_data = 1;		# data
 
 
@@ -72,7 +70,7 @@ sub new
 	my $dc = Wx::ClientDC->new($this);
 	$dc->SetFont($font_fixed);
 	my $CHAR_WIDTH = $this->{CHAR_WIDTH} = $dc->GetCharWidth();
-	display($dbg_ctrl,1,"CHAR_WIDTH=$CHAR_WIDTH");
+	display($dbg_ctrl+1,1,"CHAR_WIDTH=$CHAR_WIDTH");
 
 	my $xpos = 0;
 	for my $col_info (@$columns)
@@ -110,7 +108,7 @@ sub onSize
 	my $width = $sz->GetWidth();
 	my $height = $sz->GetHeight();
 
-	display(0,0,"onSize()");
+	display($dbg_ctrl+1,0,"onSize()");
 	$this->{update_rect} = Wx::Rect->new(0,$this->{scroll_pos} * $ROW_HEIGHT,$width,$height);
 	$this->Update();
 }

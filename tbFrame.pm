@@ -3,7 +3,7 @@
 # tbFrame.pm
 #-------------------------------------------------------------------------
 
-package apps::teensyBoat::tbFrame;
+package tbFrame;
 use strict;
 use warnings;
 use threads;
@@ -16,18 +16,17 @@ use Time::HiRes qw(time sleep);
 use Pub::Utils;
 use Pub::WX::Frame;
 use Win32::SerialPort;
-use Win32::Console;
-use apps::teensyBoat::tbUtils;
-use apps::teensyBoat::tbResources;
-use apps::teensyBoat::tbConsole;
-use apps::teensyBoat::tbServer;
-use apps::teensyBoat::tbBinary;
-use apps::teensyBoat::winProg;
-use apps::teensyBoat::winBoat;
-use apps::teensyBoat::winST;
-
+use tbUtils;
+use tbResources;
+use tbConsole;
+use tbBinary;
+use winProg;
+use winBoat;
+use winST;
 use base qw(Pub::WX::Frame);
 
+
+my $dbg_frame = 1;
 my $dbg_binary = 1;
 
 
@@ -64,17 +63,17 @@ if (0)
 sub new
 {
 	my ($class, $parent) = @_;
+
+	Pub::WX::Frame::setHowRestore(
+		# $RESTORE_MAIN_RECT);
+		$RESTORE_ALL);
+
 	my $this = $class->SUPER::new($parent);
 
 	EVT_MENU($this, $WIN_PROG, \&onCommand);
 	EVT_MENU($this, $WIN_BOAT, \&onCommand);
 	EVT_MENU($this, $WIN_SEATALK, \&onCommand);
     EVT_IDLE($this, \&onIdle);
-
-	my $data = undef;
-	$this->createPane($WIN_BOAT,$this->{book},$data,"test237");
-	$this->createPane($WIN_SEATALK,$this->{book},$data,"test237");
-	$this->createPane($WIN_PROG,$this->{book},$data,"test237");
 
 	return $this;
 }
@@ -139,11 +138,11 @@ sub createPane
 	my ($this,$id,$book,$data) = @_;
 	return error("No id in createPane()") if (!$id);
     $book ||= $this->{book};
-	display(0,0,"minimumFrame::createPane($id) book="._def($book)."  data="._def($data));
-	return apps::teensyBoat::winProg->new($this,$book,$id,"test236 $id") if $id == $WIN_PROG;
-	return apps::teensyBoat::winBoat->new($this,$book,$id,"test236 $id") if $id == $WIN_BOAT;
-	return apps::teensyBoat::winST->new($this,$book,$id,"test236 $id") if $id == $WIN_SEATALK;
-    return $this->SUPER::createPane($id,$book,$data,"test237");
+	display($dbg_frame,0,"tbFrame::createPane($id) book="._def($book)."  data="._def($data));
+	return winProg->new($this,$book,$id,$data) if $id == $WIN_PROG;
+	return winBoat->new($this,$book,$id,$data) if $id == $WIN_BOAT;
+	return winST->new($this,$book,$id,$data) if $id == $WIN_SEATALK;
+    return $this->SUPER::createPane($id,$book,$data);
 }
 
 
@@ -157,7 +156,7 @@ sub onCommand
 		$id == $WIN_SEATALK)
 	{
     	my $pane = $this->findPane($id);
-		display(0,0,"$appName onCommand($id) pane="._def($pane));
+		display($dbg_frame,0,"$appName onCommand($id) pane="._def($pane));
     	$this->createPane($id) if !$pane;
 	}
 }

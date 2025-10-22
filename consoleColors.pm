@@ -1,4 +1,4 @@
-package apps::teensyBoat::consoleColors;
+package consoleColors;
 use strict;
 use warnings;
 

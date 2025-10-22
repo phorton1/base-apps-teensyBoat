@@ -12,9 +12,7 @@
 #	Three protocol columns of instrument checkboxes
 #   with all_on and all_off buttons at the top.
 
-
-
-package apps::teensyBoat::winProg;
+package winProg;
 use strict;
 use warnings;
 use Wx qw(:everything);
@@ -23,10 +21,13 @@ use Wx::Event qw(
 	EVT_BUTTON );
 use Pub::Utils;
 use Pub::WX::Window;
-use apps::teensyBoat::tbUtils;
-use apps::teensyBoat::tbBinary;
-use apps::teensyBoat::tbConsole;
-use base qw(Wx::Window MyWX::Window);
+use tbUtils;
+use tbBinary;
+use tbConsole;
+use base qw(Pub::WX::Window);
+
+
+my $dbg_win = 0;
 
 
 my $TOP_MARGIN = 50;
@@ -42,8 +43,6 @@ my $NUM_PORT_CTRLS = $NUM_INSTRUMENTS + 2;
 # my $NUM_CTRLS = $NUM_PORT_CONTROLS * $NUM_BOAT_PORTS;
 
 my @BUTTON_NAMES = ( 'all_on', 'all_off' );
-
-
 
 my $ID_LOAD_DEFAULTS = 900;
 my $ID_SAVE_DEFAULTS = 901;
@@ -80,8 +79,8 @@ sub new
 {
 	my ($class,$frame,$book,$id,$data) = @_;
 	my $this = $class->SUPER::new($book,$id);
-	display(0,0,"winBoat::new() called");
-	$this->MyWindow($frame,$book,$id,"Prog");
+	display($dbg_win,0,"winProg::new() called");
+	$this->MyWindow($frame,$book,$id,"Prog",$data);
 
 	# default buttons
 
@@ -155,12 +154,12 @@ sub onButton
 
 	if ($id == 	$ID_LOAD_DEFAULTS)
 	{
-		display(0,0,"onButton(LOAD)");
+		display($dbg_win,0,"onButton(LOAD)");
 		$command = "LOAD";
 	}
 	elsif ($id == 	$ID_SAVE_DEFAULTS)
 	{
-		display(0,0,"onButton(SAVE)");
+		display($dbg_win,0,"onButton(SAVE)");
 		$command = "SAVE";
 	}
 	else
@@ -171,7 +170,7 @@ sub onButton
 		my $button_num = $inst_num - $NUM_INSTRUMENTS;
 		my $value = $button_num ? 0 : 1;
 
-		display(0,0,"onButton $port_name($port_num) @BUTTON_NAMES($button_num)");
+		display($dbg_win,0,"onButton $port_name($port_num) @BUTTON_NAMES($button_num)");
 
 		# turn all the checkboxes on or off
 
@@ -204,7 +203,7 @@ sub onCheckBox
 	my $port_name = portName($id);
 	my $inst_num = instrumentOf($id);
 	my $inst_name = instrumentName($inst_num);
-	display(0,0,"onCheckBox $port_name($port_num) $inst_name($inst_num) checked=$checked");
+	display($dbg_win,0,"onCheckBox $port_name($port_num) $inst_name($inst_num) checked=$checked");
 	
 	# the "i_{inst_name}=XX" command currntly expects a portwise binary XX
 	# we build the binary number here.
@@ -230,7 +229,7 @@ sub handleBinaryData
 {
 	my ($this,$counter,$type,$packet) = @_;
 	# display(0,0,"handleBinaryData($counter) len=".length($binary_data));
-	display_bytes(0,0,"packet",$packet);
+	display_bytes($dbg_win+1,0,"packet",$packet);
 
 	my $offset = 0;
 	for (my $i=0; $i<$NUM_INSTRUMENTS; $i++)

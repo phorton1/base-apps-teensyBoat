@@ -109,7 +109,7 @@ sub handleBinaryData
 	my $data = substr($packet,$offset);
 	my $st = substr($hex,0,2);
 
-	my $found = $slots->{$st};
+	my $found = $slots->{$dir.$st};
 	if ($found)
 	{
 		$found->{count}++;
@@ -126,7 +126,7 @@ sub handleBinaryData
 	}
 	else
 	{
-		$slots->{$st} = {
+		$slots->{$dir.$st} = {
 			dir => $dir,
 			count => 1,
 			changed => 3,
@@ -138,13 +138,13 @@ sub handleBinaryData
 
 		my $num = 0;
 		my @sts = sort keys %$slots;
-		for my $st (@sts)
+		for my $dir_st (@sts)
 		{
-			$slots->{$st}->{num} = $num++;
+			$slots->{$dir_st}->{num} = $num++;
 		}
 	}
 
-	$this->{list_ctrl}->notifyDataChanged($st);
+	$this->{list_ctrl}->notifyDataChanged($dir.$st);
 }
 
 

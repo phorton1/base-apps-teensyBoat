@@ -41,6 +41,10 @@ my $boat_data = [
 	{ row=>2,	col=>0,		name=>'routing',			type=>'Byte' },
 	{ row=>3,	col=>0,		name=>'arrived',			type=>'Byte' },
 
+	{ row=>6,	col=>0,		name=>'trip_on',			type=>'Byte' },
+	{ row=>7,	col=>0,		name=>'trip_dist',			type=>'Float', 		prec=>2},
+	{ row=>8,	col=>0,		name=>'log_total',			type=>'Float', 		prec=>1},
+
 	{ row=>10,	col=>0,		name=>'start_wp',   		type=>'Byte',		},
 	{ row=>11,	col=>0,		name=>'name',				type=>'FixStr',		fxn_param=>8 },		# fixed length 8
 	{ row=>12,	col=>0,		name=>'target_wp',   		type=>'Byte',		},

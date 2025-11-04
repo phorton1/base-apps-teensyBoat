@@ -40,15 +40,16 @@ my $boat_data = [
 	{ row=>1,	col=>0,		name=>'autopilot',			type=>'Byte' },
 	{ row=>2,	col=>0,		name=>'routing',			type=>'Byte' },
 	{ row=>3,	col=>0,		name=>'arrived',			type=>'Byte' },
+	{ row=>4,	col=>0,		name=>'route_name',			type=>'FixStr',		fxn_param=>16 },	# fixed length 16
 
 	{ row=>6,	col=>0,		name=>'trip_on',			type=>'Byte' },
 	{ row=>7,	col=>0,		name=>'trip_dist',			type=>'Float', 		prec=>2},
 	{ row=>8,	col=>0,		name=>'log_total',			type=>'Float', 		prec=>1},
 
 	{ row=>10,	col=>0,		name=>'start_wp',   		type=>'Byte',		},
-	{ row=>11,	col=>0,		name=>'name',				type=>'FixStr',		fxn_param=>8 },		# fixed length 8
+	{ row=>11,	col=>0,		name=>'start_name',			type=>'FixStr',		fxn_param=>8 },		# fixed length 8
 	{ row=>12,	col=>0,		name=>'target_wp',   		type=>'Byte',		},
-	{ row=>13,	col=>0,		name=>'name',				type=>'FixStr',		fxn_param=>8 },		# fixed length 8
+	{ row=>13,	col=>0,		name=>'target_name',		type=>'FixStr',		fxn_param=>8 },		# fixed length 8
 	{ row=>14,	col=>0,		name=>'head_to_wp',   		type=>'Float',		prec=>1,	},
 	{ row=>15,	col=>0,		name=>'dist_to_wp',   		type=>'Float',		prec=>4,	},
 

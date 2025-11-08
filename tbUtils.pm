@@ -40,14 +40,12 @@ BEGIN
 	    $INST_GENSET
 	    $NUM_INSTRUMENTS
 
-		$BINARY_TYPE_PROG
-		$BINARY_TYPE_BOAT
-		$BINARY_TYPE_ST
-		$BINARY_TYPE_0183
+
 		$NO_ECHO_TO_PERL
 
 		$SHOW_DEGREE_MINUTES
 		
+		portId
 		portName
 		instrumentName
 
@@ -60,9 +58,10 @@ BEGIN
 # defines that must agree with INO
 
 our $PORT_SEATALK		= 0;
-our $PORT_0183			= 1;
-our $PORT_2000			= 2;
-our $NUM_BOAT_PORTS		= 3;
+our $PORT_0183A			= 1;
+our $PORT_0183B			= 2;
+our $PORT_2000			= 3;
+our $NUM_BOAT_PORTS		= 4;
 
 our $INST_DEPTH			= 0;
 our $INST_LOG			= 1;
@@ -75,10 +74,6 @@ our $INST_ENGINE 		= 7;
 our $INST_GENSET		= 8;
 our $NUM_INSTRUMENTS 	= 9;
 
-our $BINARY_TYPE_PROG = 0x0001;
-our $BINARY_TYPE_BOAT = 0x0002;
-our $BINARY_TYPE_ST	  = 0x0004;
-our $BINARY_TYPE_0183 = 0x0008;
 
 our $NO_ECHO_TO_PERL   = 10000;
 
@@ -104,12 +99,25 @@ $ini_file = "$temp_dir/$appName.ini";
 #--------------------------------
 
 sub portName
+	# human readable
 {
 	my ($port_num) = @_;
 	return "SEATALK"	if $port_num == $PORT_SEATALK;
-	return "NMEA0183"	if $port_num == $PORT_0183;
+	return "NMEA0183A"	if $port_num == $PORT_0183A;
+	return "NMEA0183B"	if $port_num == $PORT_0183B;
 	return "NMEA2000"	if $port_num == $PORT_2000;
 	return "UNKNOWN_PORT";
+}
+
+sub portId
+	# understood by ino M_ and I_ commands
+{
+	my ($port_num) = @_;
+	return "ST"		if $port_num == $PORT_SEATALK;
+	return "83A"	if $port_num == $PORT_0183A;
+	return "83B"	if $port_num == $PORT_0183B;
+	return "2000"	if $port_num == $PORT_2000;
+	return "UNKNOWN_PORT_ID";
 }
 
 sub instrumentName

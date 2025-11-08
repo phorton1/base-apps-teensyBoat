@@ -15,6 +15,14 @@ BEGIN
 {
  	use Exporter qw( import );
 	our @EXPORT = qw(
+		$BINARY_TYPE_PROG
+		$BINARY_TYPE_BOAT
+		$BINARY_TYPE_ST
+		$BINARY_TYPE_0183A
+		$BINARY_TYPE_0183B
+		$BINARY_TYPE_2000
+
+
 		binaryByte
 		binaryInt16
 		binaryUint16
@@ -26,6 +34,14 @@ BEGIN
 		binaryVarStr
 	);
 }
+
+
+our $BINARY_TYPE_PROG 	= 1;
+our $BINARY_TYPE_BOAT 	= 2;
+our $BINARY_TYPE_ST	  	= 10;
+our $BINARY_TYPE_0183A 	= 11;
+our $BINARY_TYPE_0183B 	= 12;
+our $BINARY_TYPE_2000 	= 13;
 
 
 

@@ -113,7 +113,7 @@ sub onIdle
 			my $st_window = $this->findPane($WIN_SEATALK);
 			$st_window->handleBinaryData($counter,$type,$packet) if $st_window;
 		}
-		elsif ($type == $BINARY_TYPE_0183)
+		elsif ($type == $BINARY_TYPE_0183A)
 		{
 			if ($nmea_port)
 			{

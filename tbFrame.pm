@@ -108,7 +108,7 @@ sub onIdle
 			my $boat_window = $this->findPane($WIN_BOAT);
 			$boat_window->handleBinaryData($counter,$type,$packet) if $boat_window;
 		}
-		elsif ($type == $BINARY_TYPE_ST)
+		elsif ($type == $BINARY_TYPE_ST1 || $type == $BINARY_TYPE_ST2)
 		{
 			my $st_window = $this->findPane($WIN_SEATALK);
 			$st_window->handleBinaryData($counter,$type,$packet) if $st_window;

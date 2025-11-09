@@ -24,7 +24,7 @@ BEGIN
 
 		$WITH_TB_SERVER
 
-		$PORT_SEATALK
+		$PORT_ST1
 	    $PORT_0183
 	    $PORT_2000
 	    $NUM_BOAT_PORTS
@@ -57,11 +57,12 @@ BEGIN
 
 # defines that must agree with INO
 
-our $PORT_SEATALK		= 0;
-our $PORT_0183A			= 1;
-our $PORT_0183B			= 2;
-our $PORT_2000			= 3;
-our $NUM_BOAT_PORTS		= 4;
+our $PORT_ST1			= 0;
+our $PORT_ST2			= 1;
+our $PORT_0183A			= 2;
+our $PORT_0183B			= 3;
+our $PORT_2000			= 4;
+our $NUM_BOAT_PORTS		= 5;
 
 our $INST_DEPTH			= 0;
 our $INST_LOG			= 1;
@@ -98,22 +99,26 @@ $ini_file = "$temp_dir/$appName.ini";
 # methods
 #--------------------------------
 
+
 sub portName
 	# human readable
 {
 	my ($port_num) = @_;
-	return "SEATALK"	if $port_num == $PORT_SEATALK;
+	return "SEATALK1"	if $port_num == $PORT_ST1;
+	return "SEATALK2"	if $port_num == $PORT_ST2;
 	return "NMEA0183A"	if $port_num == $PORT_0183A;
 	return "NMEA0183B"	if $port_num == $PORT_0183B;
 	return "NMEA2000"	if $port_num == $PORT_2000;
 	return "UNKNOWN_PORT";
 }
 
+
 sub portId
 	# understood by ino M_ and I_ commands
 {
 	my ($port_num) = @_;
-	return "ST"		if $port_num == $PORT_SEATALK;
+	return "ST1"	if $port_num == $PORT_ST1;
+	return "ST2"	if $port_num == $PORT_ST2;
 	return "83A"	if $port_num == $PORT_0183A;
 	return "83B"	if $port_num == $PORT_0183B;
 	return "2000"	if $port_num == $PORT_2000;

@@ -432,6 +432,7 @@ sub onIdle
 			if ($now - $data->{last_update} > $ttl)
 			{
 				warning($dbg_ctrl+1,1,"deleting data($key)");
+				$this->{parent}->notifyDelete($data->{rec});
 				delete $data_set->{$key};
 				$any_deletes++;
 			}

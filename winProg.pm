@@ -51,8 +51,11 @@ my @BUTTON_NAMES = ( 'all_on', 'all_off' );
 
 my $ID_LOAD_DEFAULTS = 900;
 my $ID_SAVE_DEFAULTS = 901;
-my $ID_FWD_A_B		 = 902;
-my $ID_FWD_B_A		 = 903;
+
+my $ID_FWDST_1_2		 = 902;
+my $ID_FWDST_2_1		 = 903;
+my $ID_FWD83_A_B		 = 904;
+my $ID_FWD83_B_A		 = 905;
 
 
 my $ID_CTRL_BASE = 1000;	# uses $NUM_CTRLS identifiers
@@ -92,15 +95,24 @@ sub new
 
 	# default buttons
 
-	Wx::Button->new($this,$ID_LOAD_DEFAULTS,"LOAD",[20,20], [60,20]);
-	Wx::Button->new($this,$ID_SAVE_DEFAULTS,"SAVE",[100,20],[60,20]);
+	Wx::Button->new($this,$ID_LOAD_DEFAULTS,"LOAD",[10,10],[60,20]);
+	Wx::Button->new($this,$ID_SAVE_DEFAULTS,"SAVE",[10,35],[60,20]);
 
-	my $fwd_x = $LEFT_COL + 2 * $COL_WIDTH + 20;
-	my $a_b = Wx::CheckBox->new($this,$ID_FWD_A_B,"A->B",[$fwd_x,20]);
+	$this->{fwd} = 0;
+	
+	my $fwd_x = $LEFT_COL + $COL_WIDTH + 20;
+	my $st1_2 = Wx::CheckBox->new($this,$ID_FWDST_1_2,"1->2",[$fwd_x,20]);
 	$fwd_x += $COL_WIDTH;
-	my $b_a = Wx::CheckBox->new($this,$ID_FWD_B_A,"A<-B",[$fwd_x,20]);
-	EVT_CHECKBOX($this, $ID_FWD_A_B, \&onForwardChanged);
-	EVT_CHECKBOX($this, $ID_FWD_B_A, \&onForwardChanged);
+	my $st2_1 = Wx::CheckBox->new($this,$ID_FWDST_2_1,"1<-2",[$fwd_x,20]);
+	$fwd_x += $COL_WIDTH;
+	my $a_b = Wx::CheckBox->new($this,$ID_FWD83_A_B,"A->B",[$fwd_x,20]);
+	$fwd_x += $COL_WIDTH;
+	my $b_a = Wx::CheckBox->new($this,$ID_FWD83_B_A,"A<-B",[$fwd_x,20]);
+
+	EVT_CHECKBOX($this, $ID_FWDST_1_2, \&onForwardChanged);
+	EVT_CHECKBOX($this, $ID_FWDST_2_1, \&onForwardChanged);
+	EVT_CHECKBOX($this, $ID_FWD83_A_B, \&onForwardChanged);
+	EVT_CHECKBOX($this, $ID_FWD83_B_A, \&onForwardChanged);
 
 	# column headers
 
@@ -164,7 +176,7 @@ sub new
 				my $mon_ctrl = Wx::TextCtrl->new($this, $id, '0x00', [$x+12, $y], [36, 20], wxTE_PROCESS_ENTER);
 				EVT_KILL_FOCUS($mon_ctrl, \&onMonChanged);
 				EVT_TEXT_ENTER($mon_ctrl,$id, \&onMonChanged);
-				$this->{mon_values}->[$i] = '0x00';
+				$this->{mon_values}->[$i] = 0;
 			}
 		}
 	}
@@ -260,21 +272,22 @@ sub onMonChanged
 {
 	my ($ctrl,$event) = @_;
 	my $id = $event->GetId();
-	my $value = $ctrl->GetValue() || 0;
+	my $str_value = $ctrl->GetValue() || 0;
 	my $this = $ctrl->GetParent();
-
 	my $port_num = portOf($id);
 	my $port_id = portId($port_num);
 
-	display($dbg_win,0,"onMonChanged($id) $port_id($port_num) cur=$this->{mon_values}->[$port_num]  value=$value");
+	my $value = $str_value =~ /^0x/ ? hex($str_value) : $str_value;
+	my $hex_value = sprintf("0x%02x",$value);
 
-	if ($this->{mon_values}->[$port_num] ne $value)
+	display($dbg_win,0,"onMonChanged($id) $port_id($port_num) cur=$this->{mon_values}->[$port_num]  str_value($str_value)=$value='$hex_value'");
+
+	$ctrl->SetValue($hex_value) if $str_value ne $hex_value;
+
+	if ($this->{mon_values}->[$port_num] != $value)
 	{
-		my $actual_value = $value =~ /^0x/ ? hex($value) : $value;
-		my $hex_value = sprintf("0x%02x",$value);
-		$this->{mon_values}->[$port_num] = $hex_value;
-		$ctrl->SetValue($hex_value) if $hex_value ne $value;
-		my $command = "M_$port_id=$actual_value";
+		$this->{mon_values}->[$port_num] = $value;
+		my $command = "M_$port_id=$value";
 		sendTeensyCommand($command);
 	}
 	$event->Skip();
@@ -285,24 +298,43 @@ sub onForwardChanged
 {
     my ($this, $event) = @_;
     my $id = $event->GetId();
+	my $ctrl = $event->GetEventObject();
+	my $value = $ctrl->GetValue() || 0;
+	my $rel_id = $id - $ID_FWDST_1_2;
+	my $mask = 1 << $rel_id;
+	my $fwd = $this->{fwd};
 
-    my $a_b = $this->FindWindow($ID_FWD_A_B);
-    my $b_a = $this->FindWindow($ID_FWD_B_A);
+	display($dbg_win,0,"onForwardChanged($id)  rel_id($rel_id) mask($mask) value($value) cur fwd($fwd)");
 
-    if ($id == $ID_FWD_A_B && $a_b->GetValue)
+	if ($value)
 	{
-        $b_a->SetValue(0);
-        sendTeensyCommand("FWD=1");
-    }
-    elsif ($id == $ID_FWD_B_A && $b_a->GetValue)
+		my $other_id =
+			$id == $ID_FWD83_A_B ? $ID_FWD83_B_A :
+			$id == $ID_FWD83_B_A ? $ID_FWD83_A_B :
+			$id == $ID_FWDST_1_2 ? $ID_FWDST_2_1 :
+			$ID_FWDST_1_2;
+		my $other_rel_id = $other_id - $ID_FWDST_1_2;
+		my $other_mask = 1 << $other_rel_id;
+		$fwd |= $mask;
+
+		display($dbg_win,1,"other_id($other_id) other_rel_id($other_rel_id) other_mask($other_mask) new fwd($fwd)");
+
+		if ($fwd & $other_mask)
+		{
+			$fwd &= ~$other_mask;
+			my $other_ctrl = $this->FindWindow($other_id);
+			$other_ctrl->SetValue(0);
+			display($dbg_win,1,"turned off other mask new fwd($fwd)");
+		}
+	}
+	else
 	{
-        $a_b->SetValue(0);
-        sendTeensyCommand("FWD=2");
-    }
-    elsif (!$a_b->GetValue && !$b_a->GetValue)
-	{
-        sendTeensyCommand("FWD=0");
-    }
+		$fwd &= ~$mask;
+		display($dbg_win,1,"turned off mask new fwd($fwd)");
+	}
+
+	$this->{fwd} = $fwd;
+	sendTeensyCommand("FWD=$fwd");
 }
 
 
@@ -332,13 +364,17 @@ sub handleBinaryData
 		my $text_ctrl = $this->FindWindow($text_id);
 		my $hex_value = sprintf("0x%02x",$value);
 		$text_ctrl->SetValue($hex_value);
-		$this->{mon_values}->[$i] = $hex_value;
+		$this->{mon_values}->[$i] = $value;
 	}
-	my $fwd = binaryByte($packet,\$offset);
-    my $a_b = $this->FindWindow($ID_FWD_A_B);
-    my $b_a = $this->FindWindow($ID_FWD_B_A);
-	$a_b->SetValue($fwd & 1);
-	$b_a->SetValue($fwd & 2);
+	my $fwd = $this->{fwd} = binaryByte($packet,\$offset);
+    my $st_1_2 = $this->FindWindow($ID_FWDST_1_2);
+    my $st_2_1 = $this->FindWindow($ID_FWDST_2_1);
+    my $a_b = $this->FindWindow($ID_FWD83_A_B);
+    my $b_a = $this->FindWindow($ID_FWD83_B_A);
+	$st_1_2->SetValue($fwd & 1);
+	$st_2_1->SetValue($fwd & 2);
+	$a_b->SetValue($fwd & 4);
+	$b_a->SetValue($fwd & 8);
 }
 
 

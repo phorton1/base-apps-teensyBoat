@@ -24,7 +24,7 @@ my $TOP_MARGIN = 40;
 my $columns = [
 	{name => 'count',	width => 7,		always => 1, },
 	{name => 'dir',		width => 4, 	},
-	{name => 'st_name',	width => 15, 	},
+	{name => 'st_name',	width => 16, 	},
 	{name => 'hex',		width => 27,	dynamic => 1, },
 	{name => 'descrip',	width => 0, 	dynamic => 1, },
 	# The last column has a variable width
@@ -101,6 +101,15 @@ sub handleBinaryData
 	$rec->{count} = $counts->{$key};
 
 	$this->{list_ctrl}->notifyDataChanged($key,$rec);
+}
+
+
+sub notifyDelete
+{
+	my ($this,$rec) = @_;
+	my $key = $rec->{dir}.$rec->{st_name};
+	my $counts = $this->{counts};
+	delete $counts->{$key};
 }
 
 

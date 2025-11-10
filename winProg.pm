@@ -57,6 +57,8 @@ my $ID_FWDST_2_1		 = 903;
 my $ID_FWD83_A_B		 = 904;
 my $ID_FWD83_B_A		 = 905;
 
+my $ID_E80_FILTER		 = 950;
+
 
 my $ID_CTRL_BASE = 1000;	# uses $NUM_CTRLS identifiers
 
@@ -99,20 +101,24 @@ sub new
 	Wx::Button->new($this,$ID_SAVE_DEFAULTS,"SAVE",[10,35],[60,20]);
 
 	$this->{fwd} = 0;
+	$this->{e80filter} = 0;
+
+
 	
 	my $fwd_x = $LEFT_COL + $COL_WIDTH + 20;
-	my $st1_2 = Wx::CheckBox->new($this,$ID_FWDST_1_2,"1->2",[$fwd_x,20]);
+	my $st1_2 = Wx::CheckBox->new($this,$ID_FWDST_1_2,"1->2",[$fwd_x,30]);
 	$fwd_x += $COL_WIDTH;
-	my $st2_1 = Wx::CheckBox->new($this,$ID_FWDST_2_1,"1<-2",[$fwd_x,20]);
+	my $st2_1 = Wx::CheckBox->new($this,$ID_FWDST_2_1,"1<-2",[$fwd_x,30]);
 	$fwd_x += $COL_WIDTH;
-	my $a_b = Wx::CheckBox->new($this,$ID_FWD83_A_B,"A->B",[$fwd_x,20]);
+	my $a_b = Wx::CheckBox->new($this,$ID_FWD83_A_B,"A->B",[$fwd_x,30]);
+	my $e80_ctrl = Wx::CheckBox->new($this,	$ID_E80_FILTER,"E80 Filter",[$fwd_x,5]);
 	$fwd_x += $COL_WIDTH;
-	my $b_a = Wx::CheckBox->new($this,$ID_FWD83_B_A,"A<-B",[$fwd_x,20]);
-
+	my $b_a = Wx::CheckBox->new($this,$ID_FWD83_B_A,"A<-B",[$fwd_x,30]);
 	EVT_CHECKBOX($this, $ID_FWDST_1_2, \&onForwardChanged);
 	EVT_CHECKBOX($this, $ID_FWDST_2_1, \&onForwardChanged);
 	EVT_CHECKBOX($this, $ID_FWD83_A_B, \&onForwardChanged);
 	EVT_CHECKBOX($this, $ID_FWD83_B_A, \&onForwardChanged);
+	EVT_CHECKBOX($this, $ID_E80_FILTER, \&onE80FilterChanged);
 
 	# column headers
 
@@ -209,12 +215,12 @@ sub onButton
 	else
 	{
 		my $port_num = portOf($id);
-		my $port_name = portName($id);
+		my $port_name = portName($port_num);
 		my $inst_num = instrumentOf($id);
 		my $button_num = $inst_num - $NUM_INSTRUMENTS;
 		my $value = $button_num ? 0 : 1;
 
-		display($dbg_win,0,"onButton $port_name($port_num) @BUTTON_NAMES($button_num)");
+		display($dbg_win,0,"onButton $port_name($port_num) $BUTTON_NAMES[$button_num] value=$value");
 
 		# turn all the checkboxes on or off
 
@@ -228,7 +234,6 @@ sub onButton
 		# send the command
 
 		my $port_id = portId($port_num);
-		$value += $NO_ECHO_TO_PERL;	# don't echo
 		$command = "I_$port_id=$value";
 	}
 	
@@ -261,7 +266,6 @@ sub onCheckBox
 		$port_mask |= (1 << $i) if $box->GetValue();
 	}
 
-	$port_mask += $NO_ECHO_TO_PERL;	# don't echo
 	my $command = "I_$inst_name=$port_mask";
 	sendTeensyCommand($command);
 }
@@ -308,24 +312,24 @@ sub onForwardChanged
 
 	if ($value)
 	{
-		my $other_id =
-			$id == $ID_FWD83_A_B ? $ID_FWD83_B_A :
-			$id == $ID_FWD83_B_A ? $ID_FWD83_A_B :
-			$id == $ID_FWDST_1_2 ? $ID_FWDST_2_1 :
-			$ID_FWDST_1_2;
-		my $other_rel_id = $other_id - $ID_FWDST_1_2;
-		my $other_mask = 1 << $other_rel_id;
+		# my $other_id =
+		# 	$id == $ID_FWD83_A_B ? $ID_FWD83_B_A :
+		# 	$id == $ID_FWD83_B_A ? $ID_FWD83_A_B :
+		# 	$id == $ID_FWDST_1_2 ? $ID_FWDST_2_1 :
+		# 	$ID_FWDST_1_2;
+		# my $other_rel_id = $other_id - $ID_FWDST_1_2;
+		# my $other_mask = 1 << $other_rel_id;
 		$fwd |= $mask;
 
-		display($dbg_win,1,"other_id($other_id) other_rel_id($other_rel_id) other_mask($other_mask) new fwd($fwd)");
+		#display($dbg_win,1,"other_id($other_id) other_rel_id($other_rel_id) other_mask($other_mask) new fwd($fwd)");
 
-		if ($fwd & $other_mask)
-		{
-			$fwd &= ~$other_mask;
-			my $other_ctrl = $this->FindWindow($other_id);
-			$other_ctrl->SetValue(0);
-			display($dbg_win,1,"turned off other mask new fwd($fwd)");
-		}
+		# if ($fwd & $other_mask)
+		# {
+		# 	$fwd &= ~$other_mask;
+		# 	my $other_ctrl = $this->FindWindow($other_id);
+		# 	$other_ctrl->SetValue(0);
+		# 	display($dbg_win,1,"turned off other mask new fwd($fwd)");
+		# }
 	}
 	else
 	{
@@ -336,6 +340,45 @@ sub onForwardChanged
 	$this->{fwd} = $fwd;
 	sendTeensyCommand("FWD=$fwd");
 }
+
+
+
+sub onForwardChanged
+{
+    my ($this, $event) = @_;
+    my $id = $event->GetId();
+	my $ctrl = $event->GetEventObject();
+	my $value = $ctrl->GetValue() || 0;
+	my $rel_id = $id - $ID_FWDST_1_2;
+	my $mask = 1 << $rel_id;
+	my $fwd = $this->{fwd};
+
+	display($dbg_win,0,"onForwardChanged($id)  rel_id($rel_id) mask($mask) value($value) cur fwd($fwd)");
+
+	if ($value)
+	{
+		$fwd |= $mask;
+	}
+	else
+	{
+		$fwd &= ~$mask;
+		display($dbg_win,1,"turned off mask new fwd($fwd)");
+	}
+
+	$this->{fwd} = $fwd;
+	sendTeensyCommand("FWD=$fwd");
+}
+
+sub onE80FilterChanged
+{
+    my ($this, $event) = @_;
+	my $ctrl = $event->GetEventObject();
+	my $value = $ctrl->GetValue() || 0;
+	display($dbg_win,0,"onE80FilterChanged$value)");
+	$this->{e80filter} = $value;
+	sendTeensyCommand("E80_FILTER=$value");
+}
+
 
 
 
@@ -367,14 +410,12 @@ sub handleBinaryData
 		$this->{mon_values}->[$i] = $value;
 	}
 	my $fwd = $this->{fwd} = binaryByte($packet,\$offset);
-    my $st_1_2 = $this->FindWindow($ID_FWDST_1_2);
-    my $st_2_1 = $this->FindWindow($ID_FWDST_2_1);
-    my $a_b = $this->FindWindow($ID_FWD83_A_B);
-    my $b_a = $this->FindWindow($ID_FWD83_B_A);
-	$st_1_2->SetValue($fwd & 1);
-	$st_2_1->SetValue($fwd & 2);
-	$a_b->SetValue($fwd & 4);
-	$b_a->SetValue($fwd & 8);
+	my $e80filter = $this->{e80filter} = binaryByte($packet,\$offset);
+	$this->FindWindow($ID_FWDST_1_2)->SetValue($fwd & 1);
+	$this->FindWindow($ID_FWDST_2_1)->SetValue($fwd & 2);
+	$this->FindWindow($ID_FWD83_A_B)->SetValue($fwd & 4);
+	$this->FindWindow($ID_FWD83_B_A)->SetValue($fwd & 8);
+	$this->FindWindow($ID_E80_FILTER)->SetValue($e80filter);
 }
 
 

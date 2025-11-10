@@ -40,9 +40,6 @@ BEGIN
 	    $INST_GENSET
 	    $NUM_INSTRUMENTS
 
-
-		$NO_ECHO_TO_PERL
-
 		$SHOW_DEGREE_MINUTES
 		
 		portId
@@ -74,9 +71,6 @@ our $INST_AUTOPILOT		= 6;
 our $INST_ENGINE 		= 7;
 our $INST_GENSET		= 8;
 our $NUM_INSTRUMENTS 	= 9;
-
-
-our $NO_ECHO_TO_PERL   = 10000;
 
 
 

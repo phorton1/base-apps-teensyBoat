@@ -331,14 +331,15 @@ sub notifyDataChanged
 			{
 				my $changed = 0;
 				my $value = $rec->{$name};
-				my $last_value = $data->{"last_$name"};
+				my $last_value = $data->{"last_$name"} || '';
+				my $last_len = length($last_value);
 				my @delta = unpack('C*',$data->{"delta_$name"});
 				my $len = length($value);		# assuming it never changes
 				
 				for my $i (0..$len-1)
 				{
 					my $v = substr($value,$i,1);
-					my $l = substr($last_value,$i,1);
+					my $l = $i<$last_len ? substr($last_value,$i,1) : '';
 					if ($l ne $v)
 					{
 						$changed = 1;

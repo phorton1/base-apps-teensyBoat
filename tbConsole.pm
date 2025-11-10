@@ -57,7 +57,7 @@ sub sendTeensyCommand
 }
 
 
-
+my $buffer:shared = '';
 my $in_binary:shared  = 0;
 	# 1 = next byte is low order of len
 	# 2 = next bye is high order of len
@@ -386,31 +386,40 @@ sub console_loop
 				consoleWarning("clearing TB_TRACK");
 				clearTBTrack();
 			}
-			elsif (ord($char) == 4)            # CTRL-D
-			{
-				clearConsole();		# in Pub::Utils
-			}
 			else
 			{
-				# weird behavior
-				# character doesn't show until we send the \r\n.
-				# so, for time being, each character is on its own line
-				# and a return will show a blank line
-				
-				print "$char\r\n";
+				if (ord($char) == 4)            # CTRL-D
+                {
+					clearConsole();
+                    return;
+                }
 
-				# $CONSOLE->Write($char."\r\n");
-				# $CONSOLE->Write("\r\n") if ord($char) == 0x13;
-				#$CONSOLE->Display();
-
-				# send console-in chars to $port
-
-				if ($port)
-				{
-					$port->write($char);
-					$port->write(chr(10)) if ord($char) == 13;
-				}
-			}
+                # printf "got(0x%02x)='%s'\n",ord($char),$char ge " "?$char:'';
+                $CONSOLE->Write($char);
+                if (ord($char) == 0x0d)
+                {
+                    $CONSOLE->Write("\n");
+                    $buffer =~ s/^\s+|\s$//g;
+					if ($port)
+					{
+						$port->write($buffer."\r\n");
+					}
+					$buffer = '';
+                }
+                elsif (ord($char) == 0x08)   # backspace
+                {
+                    my $len = length($buffer);
+                    if ($len)
+                    {
+                        $buffer = substr($buffer,0,$len-1);
+                        $CONSOLE->Write(' '.$char);
+                    }
+                }
+                else
+                {
+                    $buffer .= $char;
+                }
+            }
 		}
     }
 }

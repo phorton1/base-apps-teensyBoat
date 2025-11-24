@@ -22,8 +22,6 @@ use consoleColors;
 
 # added UDP Support
 
-my $ESP32_IP_ADDRESS = '10.237.50.112';
-
 my $sel;
 my $sock;
 if ($UDP_PORT)		# in tbUtils.pm
@@ -40,7 +38,7 @@ if ($UDP_PORT)		# in tbUtils.pm
 sub sendUDP
 {
 	my ($payload) = @_;
-    my $dest_addr = pack_sockaddr_in($UDP_PORT, inet_aton($ESP32_IP_ADDRESS));
+    my $dest_addr = pack_sockaddr_in($UDP_PORT, inet_aton($UDP_IP));
     my $sent = $sock->send($payload, 0, $dest_addr);
 }
 

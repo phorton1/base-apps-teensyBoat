@@ -9,13 +9,12 @@ use warnings;
 use threads;
 use threads::shared;
 use Pub::WX::Resources;
-
+use tbUtils;
 
 BEGIN
 {
  	use Exporter qw( import );
 	our @EXPORT = qw (
-		$appName
         $resources
 
 		$WIN_PROG
@@ -24,7 +23,7 @@ BEGIN
     );
 }
 
-our $appName = "teensyBoat";
+
 
 # derived class decides if wants viewNotebook
 # commands added to the view menu, by setting

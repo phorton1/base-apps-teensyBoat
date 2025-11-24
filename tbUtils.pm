@@ -1,7 +1,18 @@
-#!/usr/bin/perl
 #-------------------------------------------------------------------------
 # tbUtils.pm
 #-------------------------------------------------------------------------
+# The program is instantiated with one command line parameter that defaults to '14',
+# 	which is the USB com port of the teensyBoat.ino device on the laptop. The port
+#	for the breadboard is currently '4'.
+# A number XXX higher than 40 is taken as the IP address 10.237.50.XXX, the ip address
+#	of tbESP32.ino which is an ESP32 connected to the teensy teensyBoat.ino, running
+#	a myIOT device which uses UDP to provide two way serial data to the teensy from
+#   this laptop.
+# The number is also used to drive the "appTitle" for the program that shows in the
+#   the WX frames so you can tell which device you are looking at, and the name of
+#	the ini file so that you can open more than one teensyBoat window and each will
+#	have its own screen layout.
+
 
 package tbUtils;
 use strict;
@@ -9,20 +20,25 @@ use warnings;
 use threads;
 use threads::shared;
 use Pub::Utils;
-use Pub::Prefs;
 use Pub::WX::AppConfig;
-use tbResources;
+# use tbResources;
 
 
 our $WITH_TB_SERVER = 0;
 
 our $SHOW_DEGREE_MINUTES = 1;
 
-my $DEFAULT_COM_PORT = 14;
-our $COM_PORT:shared = $DEFAULT_COM_PORT;
+our $DEFAULT_PROG_PARAM = 14;
+
+our $appName = "teensyBoat";
 
 
-our $UDP_PORT = $ARGV[0] ? 5005 : 0;
+# hardwired configuration
+
+my $HIGHEST_COM_PORT = 40;
+	# above this, will be considered the XXX in $UDP_IP address
+my $FIXED_LAN_ADDR = '10.237.50.';
+my $FIXED_UDP_PORT = 5005;
 
 
 BEGIN
@@ -30,8 +46,12 @@ BEGIN
  	use Exporter qw( import );
 	our @EXPORT = qw(
 
+		$appName
+
+		$PROG_PARAM
 		$COM_PORT
 		$UDP_PORT
+		$UDP_IP
 
 		$WITH_TB_SERVER
 
@@ -96,20 +116,33 @@ our $NUM_INSTRUMENTS 	= 9;
 #--------------------------------
 # main
 #--------------------------------
+# Parse the command line argument
+
+our $PROG_PARAM = $DEFAULT_PROG_PARAM;
+$PROG_PARAM = $ARGV[0] if $ARGV[0];
+our $COM_PORT = $PROG_PARAM;				# comm port default = 14
+
+our $UDP_PORT = '';
+our $UDP_IP = '';
+if ($PROG_PARAM > $HIGHEST_COM_PORT)		# above 40
+{
+	$COM_PORT = '';
+	$UDP_PORT = $FIXED_UDP_PORT;			# udp port is 5005
+	$UDP_IP = $FIXED_LAN_ADDR.$PROG_PARAM;	# and udp ip is 10.237.50.XXX
+}
+
+
+# the data directories only exist once for all $PROG_PARAMS
 
 Pub::Utils::initUtils();
 # createSTDOUTSemaphore("buddySTDOUT");
 setStandardTempDir($appName);
 setStandardDataDir($appName);
-Pub::Prefs::initPrefs("$data_dir/$appName.prefs",
-	{
-		COM_PORT => $DEFAULT_COM_PORT,
-	});
 
-$COM_PORT = getPref('COM_PORT');
+# but the ini file and shown title of the program get ($PROG_PARAM)
 
-$ini_file = $UDP_PORT ? "$temp_dir/$appName.$UDP_PORT.ini" : "$temp_dir/$appName.ini";
-
+$ini_file = "$temp_dir/$appName.$PROG_PARAM.ini";
+$appName .= "($PROG_PARAM)";
 
 
 #--------------------------------

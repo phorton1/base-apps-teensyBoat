@@ -9,6 +9,7 @@ use warnings;
 use threads;
 use threads::shared;
 use Pub::Utils;
+use Pub::Prefs;
 use Pub::WX::AppConfig;
 use tbResources;
 
@@ -17,10 +18,20 @@ our $WITH_TB_SERVER = 0;
 
 our $SHOW_DEGREE_MINUTES = 1;
 
+my $DEFAULT_COM_PORT = 14;
+our $COM_PORT:shared = $DEFAULT_COM_PORT;
+
+
+our $UDP_PORT = $ARGV[0] ? 5005 : 0;
+
+
 BEGIN
 {
  	use Exporter qw( import );
 	our @EXPORT = qw(
+
+		$COM_PORT
+		$UDP_PORT
 
 		$WITH_TB_SERVER
 
@@ -50,6 +61,13 @@ BEGIN
 
 	);
 }
+
+
+
+
+
+
+
 
 
 # defines that must agree with INO
@@ -83,9 +101,14 @@ Pub::Utils::initUtils();
 # createSTDOUTSemaphore("buddySTDOUT");
 setStandardTempDir($appName);
 setStandardDataDir($appName);
+Pub::Prefs::initPrefs("$data_dir/$appName.prefs",
+	{
+		COM_PORT => $DEFAULT_COM_PORT,
+	});
 
+$COM_PORT = getPref('COM_PORT');
 
-$ini_file = "$temp_dir/$appName.ini";
+$ini_file = $UDP_PORT ? "$temp_dir/$appName.$UDP_PORT.ini" : "$temp_dir/$appName.ini";
 
 
 

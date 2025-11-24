@@ -8,6 +8,8 @@ use strict;
 use warnings;
 use threads;
 use threads::shared;
+use IO::Select;
+use IO::Socket::INET;
 use Time::HiRes qw(time sleep);
 use Win32::Console;
 use Win32::SerialPort;
@@ -18,6 +20,36 @@ use tbServer;
 use consoleColors;
 
 
+# added UDP Support
+
+my $ESP32_IP_ADDRESS = '10.237.50.112';
+
+my $sel;
+my $sock;
+if ($UDP_PORT)		# in tbUtils.pm
+{
+	display(0,0,"opening UDP port($UDP_PORT)");
+	$sock = IO::Socket::INET->new(
+		LocalPort => $UDP_PORT,
+		Proto     => 'udp'
+	) or die "Cannot bind: $!";
+	$sel = IO::Select->new($sock);
+	display(0,0,"listening to UDP port($UDP_PORT)");
+}
+
+sub sendUDP
+{
+	my ($payload) = @_;
+    my $dest_addr = pack_sockaddr_in($UDP_PORT, inet_aton($ESP32_IP_ADDRESS));
+    my $sent = $sock->send($payload, 0, $dest_addr);
+}
+
+
+
+
+
+
+
 my $dbg_teensy_command = 0;
 
 
@@ -25,8 +57,9 @@ my $SET_DATE_AUTO 			= 1;
 my $GET_INST_STATE_AUTO 	= 1;
 
 
-our $COM_PORT:shared = 14;
 our $BAUD_RATE:shared = 115200;
+# our $COM_PORT:shared = 4;	# 14;
+# 	in tbUtils.pm
 
 
 BEGIN
@@ -40,6 +73,11 @@ BEGIN
 		sendTeensyCommand
 	);
 }
+
+
+
+
+
 
 our $binary_queue:shared = shared_clone([]);
 
@@ -84,8 +122,13 @@ $CONSOLE->Attr($DISPLAY_COLOR_NONE);
 my $console_thread = threads->create(\&console_thread);
 $console_thread->detach();
 
-my $arduino_thread = threads->create(\&arduino_thread);
-$arduino_thread->detach();
+
+if (!$sock)
+{
+	my $arduino_thread = threads->create(\&arduino_thread);
+	$arduino_thread->detach();
+}
+
 
 
 #------------------------------------
@@ -131,6 +174,11 @@ sub exitConsole
 	{
 		$port->close();
 		$port = undef;
+	}
+	if ($sock)
+	{
+		$sock->close();
+		$sock = undef;
 	}
 	kill 6,$$;
 }
@@ -311,67 +359,94 @@ sub console_loop
 	if (@$command_queue)
 	{
 		my $command = shift @$command_queue;
-		if (!$port)
+		if ($sock)
 		{
-			error("commCommand($command) but COM$COM_PORT is not open!");
-			return;
-		}
-		display($dbg_teensy_command,0,"send teensyCommand($command)");
-		$port->write($command."\r\n");
-	}
-
-	# read comm port
-
-	my $now = time();
-	if ($port)
-	{
-		$port_check_time = $now;
-		my ($BlockingFlags, $InBytes, $OutBytes, $LatchErrorFlags) = $port->status();
-		if (!defined($BlockingFlags))
-		{
-			consoleAttn("COM$COM_PORT disconnected");
-			initInParser();
-			$port = undef;
-		}
-		elsif ($InBytes)
-		{
-			my ($bytes,$buf) = $port->read($InBytes);
-			handleComBytes($buf) if $bytes;
-			#display(0,0,"got($bytes) bytes len=".length($buf));
-			#display_bytes(0,0,"buf",$buf);
+			display($dbg_teensy_command,0,"send socket teensyCommand($command)");
+			sendUDP($command."\r\n");
 		}
 		else
 		{
-			checkInTimeout();
+			if (!$port)
+			{
+				error("commCommand($command) but COM$COM_PORT is not open!");
+				return;
+			}
+			display($dbg_teensy_command,0,"send teensyCommand($command)");
+			$port->write($command."\r\n");
 		}
 	}
 
-	# open com port
+	# read $sock or comm $port
 
-	elsif (!$in_arduino_build && !$port && $now > $port_check_time + 3)
+	my $now = time();
+	if ($sock)
 	{
-		$port_check_time = $now;
-		$port = initComPort();
-
-		# Automatic communications with newly opened teensy USB Serial port
+		my @ready = $sel->can_read(0.1);
+		if (@ready)
+		{
+			my $buf;
+			my $fh = shift(@ready);
+			my $peer = $fh->recv($buf, 1024);  # receive one datagram
+			if (defined($buf))
+			{
+				# display_bytes(0,0,"tbConsole UDP packet",$buf);
+				handleComBytes($buf);
+			}
+		}
+    }
+	else
+	{
 		if ($port)
 		{
-			sendTeensyCommand("DT=".now(1,1)) if $port && $SET_DATE_AUTO;
-			sendTeensyCommand("STATE") if $GET_INST_STATE_AUTO;
+			$port_check_time = $now;
+			my ($BlockingFlags, $InBytes, $OutBytes, $LatchErrorFlags) = $port->status();
+			if (!defined($BlockingFlags))
+			{
+				consoleAttn("COM$COM_PORT disconnected");
+				initInParser();
+				$port = undef;
+			}
+			elsif ($InBytes)
+			{
+				my ($bytes,$buf) = $port->read($InBytes);
+				handleComBytes($buf) if $bytes;
+				#display(0,0,"got($bytes) bytes len=".length($buf));
+				#display_bytes(0,0,"buf",$buf);
+			}
+			else
+			{
+				checkInTimeout();
+			}
 		}
-	}
+	
+		# open com port
+
+		elsif (!$in_arduino_build && !$port && $now > $port_check_time + 3)
+		{
+			$port_check_time = $now;
+			$port = initComPort();
+
+			# Automatic communications with newly opened teensy USB Serial port
+			if ($port)
+			{
+				sendTeensyCommand("DT=".now(1,1)) if $port && $SET_DATE_AUTO;
+				sendTeensyCommand("STATE") if $GET_INST_STATE_AUTO;
+			}
+		}
+	}	# !$sock
+
 
 	# read console input events
-	
-    if ($in->GetEvents())
-    {
-        my @event = $in->Input();
-        # print "got event '@event'\n" if @event;
-        if (@event && isEventCtrlC(@event))			# CTRL-C
-        {
+
+	if ($in->GetEvents())
+	{
+		my @event = $in->Input();
+		#  print "got event '@event'\n" if @event;
+		if (@event && isEventCtrlC(@event))			# CTRL-C
+		{
 			exitConsole(1);
-        }
-        my $char = getChar(@event);
+		}
+		my $char = getChar(@event);
 		if (defined($char))
 		{
 			if ($WITH_TB_SERVER && ord($char) == 1)            # CTRL-A
@@ -389,39 +464,43 @@ sub console_loop
 			else
 			{
 				if (ord($char) == 4)            # CTRL-D
-                {
+				{
 					clearConsole();
-                    return;
-                }
+					return;
+				}
 
-                # printf "got(0x%02x)='%s'\n",ord($char),$char ge " "?$char:'';
-                $CONSOLE->Write($char);
-                if (ord($char) == 0x0d)
-                {
-                    $CONSOLE->Write("\n");
-                    $buffer =~ s/^\s+|\s$//g;
-					if ($port)
+				# printf "got(0x%02x)='%s'\n",ord($char),$char ge " "?$char:'';
+				$CONSOLE->Write($char);
+				if (ord($char) == 0x0d)
+				{
+					$CONSOLE->Write("\n");
+					$buffer =~ s/^\s+|\s$//g;
+					if ($sock)
+					{
+						sendUDP($buffer."\r\n");
+					}
+					elsif ($port)
 					{
 						$port->write($buffer."\r\n");
 					}
 					$buffer = '';
-                }
-                elsif (ord($char) == 0x08)   # backspace
-                {
-                    my $len = length($buffer);
-                    if ($len)
-                    {
-                        $buffer = substr($buffer,0,$len-1);
-                        $CONSOLE->Write(' '.$char);
-                    }
-                }
-                else
-                {
-                    $buffer .= $char;
-                }
-            }
+				}
+				elsif (ord($char) == 0x08)   # backspace
+				{
+					my $len = length($buffer);
+					if ($len)
+					{
+						$buffer = substr($buffer,0,$len-1);
+						$CONSOLE->Write(' '.$char);
+					}
+				}
+				else
+				{
+					$buffer .= $char;
+				}
+			}
 		}
-    }
+	}
 }
 
 
@@ -580,45 +659,8 @@ sub handleComBytes
 			print $char;
 		}
 	}
-
-	return;
-
-
-
-
-
-	my $attr;
-
-	# display_bytes(0,0,"buf",$buf);
-	
-	for my $line (split(/\r\n/,$buf))
-	{
-		if ($line =~ s/\x1b\[(\d+)m//)
-		{
-			my $color = $1;
-			# print "setting color($color)\n";
-			$attr = colorAttr($color);
-		}
-		elsif ($line =~ s/\x1b\[(\d+);(\d+)m//)
-		{
-			my ($fg,$bg) = ($1,$2);
-			$bg -= 10;
-			# print "setting color($fg,$bg)\n";
-			$attr = colorAttr($bg)<<4 | colorAttr($fg);
-		}
-		elsif ($line =~ s/\x1b\[[23]J//)
-		{
-			$CONSOLE->Cls();
-		}
-
-		if (length($line))
-		{
-			$CONSOLE->Attr($attr) if $attr;
-			print $line."\r\n";
-			$CONSOLE->Attr($DISPLAY_COLOR_NONE) if $attr;
-		}
-	}
 }
+
 
 
 

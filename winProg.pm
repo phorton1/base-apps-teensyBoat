@@ -312,51 +312,6 @@ sub onForwardChanged
 
 	if ($value)
 	{
-		# my $other_id =
-		# 	$id == $ID_FWD83_A_B ? $ID_FWD83_B_A :
-		# 	$id == $ID_FWD83_B_A ? $ID_FWD83_A_B :
-		# 	$id == $ID_FWDST_1_2 ? $ID_FWDST_2_1 :
-		# 	$ID_FWDST_1_2;
-		# my $other_rel_id = $other_id - $ID_FWDST_1_2;
-		# my $other_mask = 1 << $other_rel_id;
-		$fwd |= $mask;
-
-		#display($dbg_win,1,"other_id($other_id) other_rel_id($other_rel_id) other_mask($other_mask) new fwd($fwd)");
-
-		# if ($fwd & $other_mask)
-		# {
-		# 	$fwd &= ~$other_mask;
-		# 	my $other_ctrl = $this->FindWindow($other_id);
-		# 	$other_ctrl->SetValue(0);
-		# 	display($dbg_win,1,"turned off other mask new fwd($fwd)");
-		# }
-	}
-	else
-	{
-		$fwd &= ~$mask;
-		display($dbg_win,1,"turned off mask new fwd($fwd)");
-	}
-
-	$this->{fwd} = $fwd;
-	sendTeensyCommand("FWD=$fwd");
-}
-
-
-
-sub onForwardChanged
-{
-    my ($this, $event) = @_;
-    my $id = $event->GetId();
-	my $ctrl = $event->GetEventObject();
-	my $value = $ctrl->GetValue() || 0;
-	my $rel_id = $id - $ID_FWDST_1_2;
-	my $mask = 1 << $rel_id;
-	my $fwd = $this->{fwd};
-
-	display($dbg_win,0,"onForwardChanged($id)  rel_id($rel_id) mask($mask) value($value) cur fwd($fwd)");
-
-	if ($value)
-	{
 		$fwd |= $mask;
 	}
 	else

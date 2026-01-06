@@ -21,7 +21,7 @@ use tbResources;
 use tbConsole;
 use tbBinary;
 use winProg;
-use winBoat;
+use winBoatSim;
 use winST;
 use base qw(Pub::WX::Frame);
 
@@ -71,7 +71,7 @@ sub new
 	my $this = $class->SUPER::new($parent);
 
 	EVT_MENU($this, $WIN_PROG, \&onCommand);
-	EVT_MENU($this, $WIN_BOAT, \&onCommand);
+	EVT_MENU($this, $WIN_BOAT_SIM, \&onCommand);
 	EVT_MENU($this, $WIN_SEATALK, \&onCommand);
     EVT_IDLE($this, \&onIdle);
 
@@ -103,10 +103,10 @@ sub onIdle
 			my $prog_window = $this->findPane($WIN_PROG);
 			$prog_window->handleBinaryData($counter,$type,$packet) if $prog_window;
 		}
-		elsif ($type == $BINARY_TYPE_BOAT)
+		elsif ($type == $BINARY_TYPE_SIM)
 		{
-			my $boat_window = $this->findPane($WIN_BOAT);
-			$boat_window->handleBinaryData($counter,$type,$packet) if $boat_window;
+			my $boat_sim = $this->findPane($WIN_BOAT_SIM);
+			$boat_sim->handleBinaryData($counter,$type,$packet) if $boat_sim;
 		}
 		elsif ($type == $BINARY_TYPE_ST1 || $type == $BINARY_TYPE_ST2)
 		{
@@ -140,7 +140,7 @@ sub createPane
     $book ||= $this->{book};
 	display($dbg_frame,0,"tbFrame::createPane($id) book="._def($book)."  data="._def($data));
 	return winProg->new($this,$book,$id,$data) if $id == $WIN_PROG;
-	return winBoat->new($this,$book,$id,$data) if $id == $WIN_BOAT;
+	return winBoatSim->new($this,$book,$id,$data) if $id == $WIN_BOAT_SIM;
 	return winST->new($this,$book,$id,$data) if $id == $WIN_SEATALK;
     return $this->SUPER::createPane($id,$book,$data);
 }
@@ -152,7 +152,7 @@ sub onCommand
     my ($this,$event) = @_;
     my $id = $event->GetId();
 	if ($id == $WIN_PROG ||
-		$id == $WIN_BOAT ||
+		$id == $WIN_BOAT_SIM ||
 		$id == $WIN_SEATALK)
 	{
     	my $pane = $this->findPane($id);

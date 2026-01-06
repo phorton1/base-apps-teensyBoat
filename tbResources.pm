@@ -18,7 +18,7 @@ BEGIN
         $resources
 
 		$WIN_PROG
-        $WIN_BOAT
+        $WIN_BOAT_SIM
 		$WIN_SEATALK
     );
 }
@@ -30,7 +30,7 @@ BEGIN
 # the 'command_id' member on the notebook info.
 
 our ($WIN_PROG,
-	 $WIN_BOAT,
+	 $WIN_BOAT_SIM,
 	 $WIN_SEATALK) = (10000..11000);
 
 
@@ -39,7 +39,7 @@ our ($WIN_PROG,
 
 my %pane_data = (
 	$WIN_PROG		=> ['Unused String1',		'content'	],
-	$WIN_BOAT		=> ['Unused String1',		'content'	],
+	$WIN_BOAT_SIM	=> ['Unused String1',		'content'	],
 	$WIN_SEATALK	=> ['Unused String2',		'content'	],
 );
 
@@ -49,9 +49,9 @@ my %pane_data = (
 # with the base appResources
 
 my %command_data = (%{$resources->{command_data}},
-	$WIN_PROG     => ['Prog', 		'Open the Program Control window'],
-	$WIN_BOAT     => ['Boat', 		'Open the Boat window'],
-	$WIN_SEATALK  => ['Seatalk',	'Open the Seatalk window'],
+	$WIN_PROG     	=> ['Prog', 	'Open the Program Control window'],
+	$WIN_BOAT_SIM	=> ['BoatSim', 	'Open the Boat Simulator window'],
+	$WIN_SEATALK	=> ['Seatalk',	'Open the Seatalk window'],
 );
 
 
@@ -91,7 +91,7 @@ my @file_menu = ();
 
 my @view_menu = (
 	$WIN_PROG,
-	$WIN_BOAT,
+	$WIN_BOAT_SIM,
 	$WIN_SEATALK,
 	$ID_SEPARATOR,
 );

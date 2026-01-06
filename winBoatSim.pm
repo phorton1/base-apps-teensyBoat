@@ -1,12 +1,12 @@
 #!/usr/bin/perl
 #-------------------------------------------------------------------------
-# winBoat.pm
+# winBoatSim.pm
 #-------------------------------------------------------------------------
 # The Boat (simulator) window.
 # Shows and allows modifications to the state of the boat simulator.
 
 
-package winBoat;
+package winBoatSim;
 use strict;
 use warnings;
 use Wx qw(:everything);
@@ -109,8 +109,8 @@ sub new
 {
 	my ($class,$frame,$book,$id,$data) = @_;
 	my $this = $class->SUPER::new($book,$id);
-	display($dbg_win,0,"winBoat::new() called");
-	$this->MyWindow($frame,$book,$id,"Boat",$data);
+	display($dbg_win,0,"winBoatSim::new() called");
+	$this->MyWindow($frame,$book,$id,"BoatSim",$data);
 
 	$counter_ctrl = Wx::StaticText->new($this,-1,"",[10,10]);
 

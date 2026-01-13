@@ -54,6 +54,7 @@ my $boat_data = [
 	{ row=>15,	col=>0,		name=>'dist_to_wp',   		type=>'Float',		prec=>4,	},
 
 	{ row=>17,	col=>0,		name=>'desired_heading',	type=>'Float',		prec=>1,	},
+	{ row=>18,	col=>0,		name=>'rudder',				type=>'Float',		prec=>1,	},
 
 	{ row=>0,	col=>1,		name=>'depth',				type=>'Float',		prec=>1,	},
 	{ row=>1,	col=>1,		name=>'heading',		 	type=>'Float',		prec=>1,	},

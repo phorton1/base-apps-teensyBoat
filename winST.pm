@@ -10,11 +10,13 @@ use warnings;
 use Time::HiRes qw(time);
 use Wx qw(:everything);
 use Wx::Event qw(
+	EVT_CLOSE
 	EVT_SIZE );
 use Pub::Utils;
 use Pub::WX::Window;
 use tbUtils;
 use tbBinary;
+use tbConsole;
 use tbListCtrl;
 use base qw(Pub::WX::Window);
 
@@ -37,6 +39,7 @@ sub new
 	my ($class,$frame,$book,$id,$data) = @_;
 	my $this = $class->SUPER::new($book,$id);
 	display(0,0,"winST::new() called");
+
 	$this->MyWindow($frame,$book,$id,"Seatalk",$data);
 
 	$this->{counter} = 0;
@@ -44,11 +47,40 @@ sub new
 
 	$this->{counter_ctrl} = Wx::StaticText->new($this,-1,"",[10,10]);
 	Wx::StaticText->new($this, -1, "TTL (sec):",[150,10]);
-	my $ttl_ctrl  = Wx::TextCtrl->new($this, -1, "10", [220,8],[50,20]);
-	$this->{list_ctrl} = tbListCtrl->new($this,$TOP_MARGIN,$columns,$ttl_ctrl);
+	$this->{ttl_ctrl}  = Wx::TextCtrl->new($this, -1, "10", [220,8],[50,20]);
+	$this->{list_ctrl} = tbListCtrl->new($this,$TOP_MARGIN,$columns,$this->{ttl_ctrl});
+
+	# restore ini file data (zoom_level, ttl, etc) if available
+
+	if ($data)
+	{
+		display_hash(0,0,"winST::data",$data);
+		$this->{list_ctrl}->setZoomLevel($data->{zoom_level}) if $data->{zoom_level};
+		$this->{ttl_ctrl}->SetValue($data->{ttl_value}) if $data->{ttl_value};
+	}
 
 	EVT_SIZE($this, \&onSize);
+	EVT_CLOSE($this,\&onClose);
+
+	$this->initTBCommands();
 	return $this;
+}
+
+
+sub initTBCommands
+	# called from ctor and when com port opened
+{
+	my ($this) = @_;
+	sendTeensyCommand("B_ST=1");
+}
+
+
+sub onClose
+	# turn off binary binary SIM data
+{
+    my ($this,$event) = @_;
+	sendTeensyCommand("B_ST=0");
+	$this->SUPER::onClose($event);
 }
 
 
@@ -110,6 +142,18 @@ sub notifyDelete
 	my $key = $rec->{dir}.$rec->{st_name};
 	my $counts = $this->{counts};
 	delete $counts->{$key};
+}
+
+
+sub getDataForIniFile
+{
+	my ($this) = @_;
+	my $data = {};
+
+	$data->{zoom_level} = $this->{list_ctrl}->{zoom_level};
+	$data->{ttl_value} = $this->{ttl_ctrl}->GetValue();
+	
+	return $data;
 }
 
 

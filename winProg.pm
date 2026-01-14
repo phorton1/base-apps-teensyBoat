@@ -17,6 +17,7 @@ use strict;
 use warnings;
 use Wx qw(:everything);
 use Wx::Event qw(
+	EVT_CLOSE
 	EVT_CHECKBOX
 	EVT_BUTTON
 	EVT_TEXT_ENTER
@@ -188,12 +189,31 @@ sub new
 	}
 
 	EVT_BUTTON($this,-1,\&onButton);
+	EVT_CLOSE($this,\&onClose);
 
-	sendTeensyCommand("STATE");
+	$this->initTBCommands();
 
 	return $this;
 }
 
+
+
+sub initTBCommands
+	# called from ctor and when com port opened
+{
+	my ($this) = @_;
+	sendTeensyCommand("B_PROG=1");
+	sendTeensyCommand("STATE");
+}
+
+
+sub onClose
+	# turn off binary binary SIM data
+{
+    my ($this,$event) = @_;
+	sendTeensyCommand("B_PROG=0");
+	$this->SUPER::onClose($event);
+}
 
 
 sub onButton

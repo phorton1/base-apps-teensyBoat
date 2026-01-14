@@ -16,6 +16,7 @@ use Pub::Utils;
 use Pub::WX::Window;
 use tbUtils;
 use tbBinary;
+use tbConsole;
 use tbServer;
 use base qw(Pub::WX::Window);
 
@@ -126,32 +127,30 @@ sub new
 		$data->{last_value} = '';
 	}
 
-    # $this->{browser} = MyMS::IE->new($this, -1, [10,60],[300,300]);
-    # $this->{browser}->LoadString("<b>THIS IS A TEST $xyz_junk</b>");
+	EVT_CLOSE($this,\&onClose);
 
-	# EVT_CLOSE($this,\&onClose);
-    #
-	# my $style = $this->GetWindowStyle();
-	# $this->SetWindowStyle($style & (~wxCLOSE_BOX));
-	# $this->Refresh();
+	$this->initTBCommands();
 
 	return $this;
 }
 
 
-# sub closeOK
-# {
-# 	my ($this,$more_dirty) = @_;
-# 	return 0;
-# }
+sub initTBCommands
+	# called from ctor and when com port opened
+	# tells teensyBoat.ino to send binary SIM data
+{
+	my ($this) = @_;
+	sendTeensyCommand("B_SIM=1");
+}
 
-#
-# sub onClose
-# 		# only hooked up if !$USE_LOW_THREAD
-# {
-#     my ($this,$event) = @_;
-# 	$event->Veto();
-# }
+
+sub onClose
+	# turn off binary binary SIM data
+{
+    my ($this,$event) = @_;
+	sendTeensyCommand("B_SIM=0");
+	$this->SUPER::onClose($event);
+}
 
 
 sub handleBinaryData

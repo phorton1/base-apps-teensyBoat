@@ -425,7 +425,11 @@ sub onIdle
 	if ($ttl_ctrl)
 	{
 		my $ttl = $this->{ttl_ctrl}->GetValue();
-		$ttl = 10 if $ttl !~ /^\d+$/;
+		if ($ttl !~ /^\d+$/)
+		{
+			$ttl = 10;
+			$this->{ttl_ctrl}->SetValue($ttl);
+		}
 
 		for my $key (keys %$data_set)
 		{

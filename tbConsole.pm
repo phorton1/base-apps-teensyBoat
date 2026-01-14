@@ -2,6 +2,16 @@
 #-------------------------------------------------------------------------
 # the console for the teensyBoat.pm application
 #-------------------------------------------------------------------------
+# In order to handle startup and the loss/restoration of the com port
+# (i.e. a rebuild of teensyBoat.ino), tbConsole exports a global shared
+# boolean, $TB_ONLINE, which is initialized to zero, and set to one when
+# the com port or udp socket comes online.
+#
+# The $TB_ONLINE boolean is never cleared by this tbConsole code.
+# Instead it is processed in the tbFrame's onIdle method
+# to send the DT command and to let open windows send their
+# own commands, and then cleared in tbFrame.
+
 
 package tbConsole;
 use strict;
@@ -20,77 +30,34 @@ use tbServer;
 use consoleColors;
 
 
-# added UDP Support
-
-my $sel;
-my $sock;
-if ($UDP_PORT)		# in tbUtils.pm
-{
-	display(0,0,"opening UDP port($UDP_PORT)");
-	$sock = IO::Socket::INET->new(
-		LocalPort => $UDP_PORT,
-		Proto     => 'udp'
-	) or die "Cannot bind: $!";
-	$sel = IO::Select->new($sock);
-	display(0,0,"listening to UDP port($UDP_PORT)");
-}
-
-sub sendUDP
-{
-	my ($payload) = @_;
-    my $dest_addr = pack_sockaddr_in($UDP_PORT, inet_aton($UDP_IP));
-    my $sent = $sock->send($payload, 0, $dest_addr);
-}
-
-
-
-
-
-
-
 my $dbg_teensy_command = 0;
 
-
-my $SET_DATE_AUTO 			= 1;
-my $GET_INST_STATE_AUTO 	= 1;
-
-
-our $BAUD_RATE:shared = 115200;
-# our $COM_PORT:shared = 4;	# 14;
-# 	in tbUtils.pm
 
 
 BEGIN
 {
  	use Exporter qw( import );
 	our @EXPORT = qw(
-		$COM_PORT
-		$BAUD_RATE
+		$TB_ONLINE
 		$binary_queue
-
 		sendTeensyCommand
+		start_tbConsole
 	);
 }
 
 
 
-
-
-
+my $BAUD_RATE = 115200;
+# our $COM_PORT:shared;  in tbUtils.pm
+our $TB_ONLINE:shared = 0;
 our $binary_queue:shared = shared_clone([]);
 
+my $sel;
+my $sock;
 my $port;
 my $port_check_time = 0;
 my $in_arduino_build:shared = 0;
 my $command_queue:shared = shared_clone([]);
-
-
-sub sendTeensyCommand
-{
-	my ($command) = @_;
-	display($dbg_teensy_command+1,0,"queue teensyCommand($command)");
-	push @$command_queue,$command;
-}
 
 
 my $buffer:shared = '';
@@ -117,21 +84,63 @@ my $in = Win32::Console->new(STD_INPUT_HANDLE);
 $in->Mode(ENABLE_MOUSE_INPUT | ENABLE_WINDOW_INPUT );
 $CONSOLE->Attr($DISPLAY_COLOR_NONE);
 
-my $console_thread = threads->create(\&console_thread);
-$console_thread->detach();
 
 
-if (!$sock)
+# added UDP Support
+
+sub start_tbConsole
 {
-	my $arduino_thread = threads->create(\&arduino_thread);
-	$arduino_thread->detach();
+	display(0,0,"start_tbConsole() started");
+
+	if ($UDP_PORT)		# in tbUtils.pm
+	{
+		display(0,0,"opening UDP port($UDP_PORT)");
+		$sock = IO::Socket::INET->new(
+			LocalPort => $UDP_PORT,
+			Proto     => 'udp'
+		) or die "Cannot bind: $!";
+		$sel = IO::Select->new($sock);
+		display(0,0,"listening to UDP port($UDP_PORT)");
+		$TB_ONLINE = 1;
+			# trigger command sending in tbFrame
+	}
+
+
+	if (!$sock)
+	{
+		my $arduino_thread = threads->create(\&arduino_thread);
+		$arduino_thread->detach();
+	}
+
+
+	my $console_thread = threads->create(\&console_thread);
+	$console_thread->detach();
+
+	display(0,0,"start_tbConsole() finished");
 }
+
+
 
 
 
 #------------------------------------
 # utilities
 #------------------------------------
+
+sub sendUDP
+{
+	my ($payload) = @_;
+    my $dest_addr = pack_sockaddr_in($UDP_PORT, inet_aton($UDP_IP));
+    my $sent = $sock->send($payload, 0, $dest_addr);
+}
+
+sub sendTeensyCommand
+{
+	my ($command) = @_;
+	display($dbg_teensy_command+1,0,"queue teensyCommand($command)");
+	push @$command_queue,$command;
+}
+
 
 sub consoleError
 {
@@ -366,7 +375,7 @@ sub console_loop
 		{
 			if (!$port)
 			{
-				error("commCommand($command) but COM$COM_PORT is not open!");
+				warning(0,0,"commCommand($command) but COM$COM_PORT is not open!");
 				return;
 			}
 			display($dbg_teensy_command,0,"send teensyCommand($command)");
@@ -427,8 +436,7 @@ sub console_loop
 			# Automatic communications with newly opened teensy USB Serial port
 			if ($port)
 			{
-				sendTeensyCommand("DT=".now(1,1)) if $port && $SET_DATE_AUTO;
-				sendTeensyCommand("STATE") if $GET_INST_STATE_AUTO;
+				$TB_ONLINE = 1;
 			}
 		}
 	}	# !$sock

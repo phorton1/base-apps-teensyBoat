@@ -33,6 +33,13 @@ my $dbg_binary = 1;
 #-------------------------------------------
 # nmea0183 experiment
 #-------------------------------------------
+# Was used with VSPE Virtual Serial Port Emulator to forward
+# NMEA0183 from teensyBoat GPS simulator to RNS to test
+# RNS nmea0183 instrument configuration.
+#
+# Is now considered vestigial code as I prepare to implement
+# the "boatActual" and/or NMEA0183/2000 teensyBoat windows
+
 
 my $nmea_port ;
 
@@ -88,6 +95,21 @@ sub onIdle
 {
     my ($this,$event) = @_;
 
+	my $prog_window = $this->findPane($WIN_PROG);
+	my $boat_sim = $this->findPane($WIN_BOAT_SIM);
+	my $st_window = $this->findPane($WIN_SEATALK);
+
+	if ($TB_ONLINE)
+	{
+		display(0,0,"tbFrame TB_ONLINE started");
+		sendTeensyCommand("DT=".now(1,1));
+		$prog_window->initTBCommands() if $prog_window;
+		$boat_sim->initTBCommands() if $boat_sim;
+		$st_window->initTBCommands() if $st_window;
+		$TB_ONLINE = 0;	 # clear the com-online state
+		display(0,0,"tbFrame TB_ONLINE finished");
+	}
+
 	if (@$binary_queue)
 	{
 		$counter++;
@@ -100,23 +122,21 @@ sub onIdle
 
 		if ($type == $BINARY_TYPE_PROG)
 		{
-			my $prog_window = $this->findPane($WIN_PROG);
 			$prog_window->handleBinaryData($counter,$type,$packet) if $prog_window;
 		}
 		elsif ($type == $BINARY_TYPE_SIM)
 		{
-			my $boat_sim = $this->findPane($WIN_BOAT_SIM);
 			$boat_sim->handleBinaryData($counter,$type,$packet) if $boat_sim;
 		}
 		elsif ($type == $BINARY_TYPE_ST1 || $type == $BINARY_TYPE_ST2)
 		{
-			my $st_window = $this->findPane($WIN_SEATALK);
 			$st_window->handleBinaryData($counter,$type,$packet) if $st_window;
 		}
 		elsif ($type == $BINARY_TYPE_0183A)
 		{
 			if ($nmea_port)
 			{
+				# vestigial support to send NMEA0183 GPS to RNS virtual instrument
 				my $LEN_SIZE = 4;
 				my $nmea_msg = substr($binary_data,$LEN_SIZE);	# skip the length word; the rest is text
 				display(0,1,"NMEA_FAKE($counter) -->$nmea_msg");

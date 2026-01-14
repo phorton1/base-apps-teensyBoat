@@ -16,6 +16,7 @@ use Pub::WX::Main;
 use tbResources;
 use tbUtils;
 use tbFrame;
+use tbConsole;
 use base 'Wx::App';
 
 
@@ -43,10 +44,12 @@ sub OnInit
 
 	$frame->Show( 1 );
 	display(0,0,"$$resources{app_title} started");
+	start_tbConsole();
 	return 1;
 }
 
 my $app = teensyBoat->new();
+
 Pub::WX::Main::run($app);
 
 display(0,0,"ending $appName.pm frame=$frame");

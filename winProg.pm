@@ -22,6 +22,7 @@ use Wx::Event qw(
 	EVT_BUTTON
 	EVT_TEXT_ENTER
 	EVT_SET_FOCUS
+	EVT_COMBOBOX
 	EVT_KILL_FOCUS );
 use Pub::Utils;
 use Pub::WX::Window;
@@ -59,10 +60,11 @@ my $ID_FWD83_A_B		 = 904;
 my $ID_FWD83_B_A		 = 905;
 
 my $ID_E80_FILTER		 = 950;
-
+my $ID_GP8_MODE			 = 960;
 
 my $ID_CTRL_BASE = 1000;	# uses $NUM_CTRLS identifiers
 
+my @gp8_labels = ('OFF','PULSE','ESP32','NEO6M');
 
 my $font_fixed = Wx::Font->new(12,wxFONTFAMILY_MODERN,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD);
 
@@ -103,9 +105,12 @@ sub new
 
 	$this->{fwd} = 0;
 	$this->{e80filter} = 0;
+	$this->{gp8_mode} = 0;
 
+	Wx::StaticText->new($this,-1,"GP8 Mode:",[360,5]);
+	$this->{gp8_combo} = Wx::ComboBox->new($this,$ID_GP8_MODE,'OFF',[425,2],[80,20],\@gp8_labels,wxCB_READONLY);
+	EVT_COMBOBOX($this,$ID_GP8_MODE,\&onGP8ModeCombo);
 
-	
 	my $fwd_x = $LEFT_COL + $COL_WIDTH + 20;
 	my $st1_2 = Wx::CheckBox->new($this,$ID_FWDST_1_2,"1->2",[$fwd_x,30]);
 	$fwd_x += $COL_WIDTH;
@@ -260,6 +265,16 @@ sub onButton
 	sendTeensyCommand($command);
 }
 
+sub onGP8ModeCombo
+{
+	my ($this,$event) = @_;
+	my $value = $this->{gp8_combo}->GetValue();
+	display(0,0,"onFileDeviceCombo($value)");
+	sendTeensyCommand("GP8_MODE=$value");
+}
+
+
+
 
 
 sub onCheckBox
@@ -386,11 +401,15 @@ sub handleBinaryData
 	}
 	my $fwd = $this->{fwd} = binaryByte($packet,\$offset);
 	my $e80filter = $this->{e80filter} = binaryByte($packet,\$offset);
+	my $gp8_mode = $this->{gp8_mode} = binaryByte($packet,\$offset);
+	my $gp8_selected = $gp8_labels[$this->{gp8_mode}];
 	$this->FindWindow($ID_FWDST_1_2)->SetValue($fwd & 1);
 	$this->FindWindow($ID_FWDST_2_1)->SetValue($fwd & 2);
 	$this->FindWindow($ID_FWD83_A_B)->SetValue($fwd & 4);
 	$this->FindWindow($ID_FWD83_B_A)->SetValue($fwd & 8);
 	$this->FindWindow($ID_E80_FILTER)->SetValue($e80filter);
+	warning(0,0,"ui got gp8_mode($gp8_mode)=$gp8_selected");
+	$this->FindWindow($ID_GP8_MODE)->SetValue($gp8_selected);
 }
 
 

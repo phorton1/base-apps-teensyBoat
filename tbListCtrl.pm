@@ -30,7 +30,7 @@ my $DELTA_COUNT = 4;
 	# number of one second onIdle cycles the changes
 	# will remain red
 
-my $dbg_ctrl = 0;		# life cycle
+my $dbg_ctrl = 1;		# life cycle
 my $dbg_draw = 1;		# drawing
 my $dbg_data = 1;		# data
 
@@ -184,8 +184,12 @@ sub setPageHeight
 
 	my $sz = $this->GetSize();
 	my $wwidth = $sz->GetWidth();
-	display($dbg_ctrl+1,0,"setPageHeight() LINE_CHARS=$this->{LINE_CHARS} CHAR_WIDTH=$this->{CHAR_WIDTH} width($width) height($height)  window_width=$wwidth");
-
+	my $wheight = $sz->GetHeight();
+	display($dbg_ctrl+1,0,"setPageHeight() ".
+		"$this->{LINE_CHARS}x$this->{CHAR_WIDTH}=width($width) ".
+		"$this->{PAGE_LINES}x$this->{LINE_HEIGHT}=height($height) ".
+		"win=$wwidth,$wheight");
+	
 	$this->SetVirtualSize([$width,$height]);
 }
 
@@ -256,7 +260,7 @@ sub drawRec
 		
 		if ($col_info->{dynamic})
 		{
-			$this->drawChanges($dc,$xpos,$ypos,$data,$name);
+			$this->drawChanges($dc,$xpos,$ypos,$data,$name,$col_info->{width});
 		}
 		else
 		{
@@ -275,7 +279,7 @@ sub drawRec
 
 sub drawChanges
 {
-	my ($this,$dc,$xpos,$ypos,$data,$name) = @_;
+	my ($this,$dc,$xpos,$ypos,$data,$name,$width) = @_;
 	my $rec = $data->{rec};
 	my $value = $rec->{$name};
 	my $len = length($value);
@@ -284,6 +288,7 @@ sub drawChanges
 
 	display($dbg_draw+2,0,"drawChanges($xpos,$ypos,$name)=$value");
 
+	$len = $width if $width && $len > $width;
 	for (my $i=0; $i<$len; $i++)
 	{
 		my $highlight = $delta[$i];
@@ -392,8 +397,8 @@ sub notifyDataChanged
 			$this->{LAST_COL_CHARS} = $len;
 			$this->setColumnRects();
 		}
-
-		my $num_recs = keys %{$this->{data}};
+ 
+		my $num_recs = scalar(keys %$data_set);
 		$this->setPageHeight($num_recs);
 		$this->{redraw_all} = 1;
 	}
@@ -509,6 +514,7 @@ sub onIdle
 		display($dbg_ctrl+1,0,"deletes",0,$UTILS_COLOR_BROWN);
 		$this->setColumnRects();
 		$this->setPageHeight(scalar(keys %$data_set));
+
 		$this->{redraw_all} = 1;
 		$this->Refresh();
 	}

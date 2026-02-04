@@ -27,7 +27,7 @@ my $columns = [
 	{name => 'count',	width => 7,		always => 1, },
 	{name => 'dir',		width => 4, 	},
 	{name => 'st_name',	width => 16, 	},
-	{name => 'hex',		width => 27,	dynamic => 1, },
+	{name => 'hex',		width => 35,	dynamic => 1, },
 	{name => 'descrip',	width => 0, 	dynamic => 1, },
 	# The last column has a variable width
 ];

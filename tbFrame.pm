@@ -40,27 +40,8 @@ my $dbg_binary = 1;
 # Is now considered vestigial code as I prepare to implement
 # the "boatActual" and/or NMEA0183/2000 teensyBoat windows
 
-
-my $nmea_port ;
-
-if (0)
-{
-	my $nmea_port_str = "COM29";  # VSPE write-end
-	my $nmea_port = Win32::SerialPort->new($nmea_port_str);
-	if (!$nmea_port)
-	{
-		error("Could not open Virtual Serial port $nmea_port_str");
-	}
-	else
-	{
-		$nmea_port->baudrate(115200);	# 4800);
-		$nmea_port->databits(8);
-		$nmea_port->parity("none");
-		$nmea_port->stopbits(1);
-		$nmea_port->write_settings();
-	}
-}
-
+my $NMEA0183_COMPORT = 0;	# 29;
+my $com0183;
 
 
 #-----------------------------------------------------------
@@ -81,6 +62,25 @@ sub new
 	EVT_MENU($this, $WIN_BOAT_SIM, \&onCommand);
 	EVT_MENU($this, $WIN_SEATALK, \&onCommand);
     EVT_IDLE($this, \&onIdle);
+
+	if ($NMEA0183_COMPORT)
+	{
+		my $nmea_port_str = "COM$NMEA0183_COMPORT";  # VSPE write-end
+		$com0183 = Win32::SerialPort->new($nmea_port_str);
+		if (!$com0183)
+		{
+			error("Could not NMEA0183 output port $nmea_port_str");
+		}
+		else
+		{
+			display(0,0,"NMEA0183 output port $nmea_port_str opened");
+			$com0183->baudrate(115200);	# 4800);
+			$com0183->databits(8);
+			$com0183->parity("none");
+			$com0183->stopbits(1);
+			$com0183->write_settings();
+		}
+	}
 
 	return $this;
 }
@@ -106,6 +106,9 @@ sub onIdle
 		$prog_window->initTBCommands() if $prog_window;
 		$boat_sim->initTBCommands() if $boat_sim;
 		$st_window->initTBCommands() if $st_window;
+
+		# sendTeensyCommand("B_0183=1") if $NMEA0183_COMPORT;
+
 		$TB_ONLINE = 0;	 # clear the com-online state
 		display(0,0,"tbFrame TB_ONLINE finished");
 	}
@@ -132,18 +135,19 @@ sub onIdle
 		{
 			$st_window->handleBinaryData($counter,$type,$packet) if $st_window;
 		}
-		elsif ($type == $BINARY_TYPE_0183A)
+		elsif ($type == $BINARY_TYPE_0183A ||
+			   $type == $BINARY_TYPE_0183B)
 		{
-			if ($nmea_port)
+			if ($com0183)
 			{
-				# vestigial support to send NMEA0183 GPS to RNS virtual instrument
 				my $LEN_SIZE = 4;
 				my $nmea_msg = substr($binary_data,$LEN_SIZE);	# skip the length word; the rest is text
-				display(0,1,"NMEA_FAKE($counter) -->$nmea_msg");
-				$nmea_port->write($nmea_msg."\r\n");
+				display(0,1,"FAKE_0183($counter) -->$nmea_msg");
+				$com0183->write($nmea_msg."\r\n");
 				sleep(0.01);
 			}
 		}
+
 	}
 
 	$event->RequestMore(1);

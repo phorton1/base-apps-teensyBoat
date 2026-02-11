@@ -53,11 +53,12 @@ my @BUTTON_NAMES = ( 'all_on', 'all_off' );
 
 my $ID_LOAD_DEFAULTS = 900;
 my $ID_SAVE_DEFAULTS = 901;
+my $ID_CLEAR_STATE   = 902;
 
-my $ID_FWDST_1_2		 = 902;
-my $ID_FWDST_2_1		 = 903;
-my $ID_FWD83_A_B		 = 904;
-my $ID_FWD83_B_A		 = 905;
+my $ID_FWDST_1_2		 = 910;
+my $ID_FWDST_2_1		 = 911;
+my $ID_FWD83_A_B		 = 912;
+my $ID_FWD83_B_A		 = 913;
 
 my $ID_E80_FILTER		 = 950;
 my $ID_GP8_MODE			 = 960;
@@ -100,8 +101,9 @@ sub new
 
 	# default buttons
 
-	Wx::Button->new($this,$ID_LOAD_DEFAULTS,"LOAD",[10,10],[60,20]);
-	Wx::Button->new($this,$ID_SAVE_DEFAULTS,"SAVE",[10,35],[60,20]);
+	Wx::Button->new($this,$ID_LOAD_DEFAULTS,"LOAD",[10,5],[60,20]);
+	Wx::Button->new($this,$ID_SAVE_DEFAULTS,"SAVE",[10,30],[60,20]);
+	Wx::Button->new($this,$ID_CLEAR_STATE,"CLEAR",[110,5],[60,20]);
 
 	$this->{fwd} = 0;
 	$this->{e80filter} = 0;
@@ -185,7 +187,7 @@ sub new
 			}
 			else
 			{
-				my $mon_ctrl = Wx::TextCtrl->new($this, $id, '0x00', [$x+12, $y], [36, 20], wxTE_PROCESS_ENTER);
+				my $mon_ctrl = Wx::TextCtrl->new($this, $id, '0x00', [$x, $y], [60, 20], wxTE_PROCESS_ENTER);
 				EVT_KILL_FOCUS($mon_ctrl, \&onMonChanged);
 				EVT_TEXT_ENTER($mon_ctrl,$id, \&onMonChanged);
 				$this->{mon_values}->[$i] = 0;
@@ -236,6 +238,11 @@ sub onButton
 	{
 		display($dbg_win,0,"onButton(SAVE)");
 		$command = "SAVE";
+	}
+	elsif ($id == 	$ID_CLEAR_STATE)
+	{
+		display($dbg_win,0,"onButton(CLEAR)");
+		$command = "CLEAR";
 	}
 	else
 	{
@@ -392,7 +399,7 @@ sub handleBinaryData
 	}
 	for (my $i=0; $i<$NUM_BOAT_PORTS; $i++)
 	{
-		my $value = binaryByte($packet,\$offset);
+		my $value = binaryUint32($packet,\$offset);
 		my $text_id = idOf($i,$PORT_MON_ON);
 		my $text_ctrl = $this->FindWindow($text_id);
 		my $hex_value = sprintf("0x%02x",$value);

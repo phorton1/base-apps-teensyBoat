@@ -65,7 +65,7 @@ my $ID_GP8_MODE			 = 960;
 
 my $ID_CTRL_BASE = 1000;	# uses $NUM_CTRLS identifiers
 
-my @gp8_labels = ('OFF','PULSE','ESP32');
+my @gp8_labels = ('OFF','PULSE','WIND','ESP32');
 
 my $font_fixed = Wx::Font->new(12,wxFONTFAMILY_MODERN,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_BOLD);
 
@@ -272,6 +272,7 @@ sub onButton
 	sendTeensyCommand($command);
 }
 
+
 sub onGP8ModeCombo
 {
 	my ($this,$event) = @_;
@@ -279,9 +280,6 @@ sub onGP8ModeCombo
 	display(0,0,"onFileDeviceCombo($value)");
 	sendTeensyCommand("GP8_MODE=$value");
 }
-
-
-
 
 
 sub onCheckBox

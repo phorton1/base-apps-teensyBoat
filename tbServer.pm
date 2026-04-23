@@ -183,6 +183,7 @@ sub new
 			# 0 is nominal debug level showing one line per request and response
 		HTTP_DEBUG_REQUEST => 0,
 		HTTP_DEBUG_RESPONSE => 0,
+		HTTP_DEBUG_QUIET_RE => '/api/',
 
 		# HTTP_DEBUG_QUIET_RE => '',
 			# if the request matches this RE, the request
@@ -276,6 +277,23 @@ sub handle_request
 	}
 
 	#------------------------------------------
+	# /api/* endpoints
+	#------------------------------------------
+
+	elsif ($uri eq '/api/command')
+	{
+		$response = $this->api_command($request,$get_params);
+	}
+	elsif ($uri eq '/api/log')
+	{
+		$response = $this->api_log($request,$get_params);
+	}
+	elsif ($uri eq '/api/status')
+	{
+		$response = $this->api_status($request,$get_params);
+	}
+
+	#------------------------------------------
 	# Let the base class handle it
 	#------------------------------------------
 
@@ -290,6 +308,74 @@ sub handle_request
 
 
 
+
+
+#==================================================================================
+# /api/* implementation
+#==================================================================================
+
+sub api_json_response
+{
+	my ($this,$request,$data) = @_;
+	my $json = my_encode_json($data);
+	my $response = http_ok($request,$json);
+	$response->{headers}->{'content-type'} = 'application/json';
+	return $response;
+}
+
+
+sub api_command
+	# GET /api/command?cmd=<command>
+	# Queues a command to the Teensy via sendTeensyCommand().
+	# Response is immediate ack; poll /api/log after a short delay for output.
+{
+	my ($this,$request,$params) = @_;
+	my $cmd = $params->{cmd} || '';
+	my $ok = 0;
+	if ($cmd)
+	{
+		tbConsole::sendTeensyCommand($cmd);
+		$ok = 1;
+	}
+	return $this->api_json_response($request,{ok => $ok, cmd => $cmd});
+}
+
+
+sub api_log
+	# GET /api/log?tail=N    - last N entries (default 200)
+	# GET /api/log?since=seq - all entries with seq > N
+	# Response: {seq, overflow, lines:[{seq,color,text},...]}
+{
+	my ($this,$request,$params) = @_;
+	my ($cur_seq,$entries,$overflow);
+	if (defined $params->{since})
+	{
+		($cur_seq,$entries,$overflow) = getOutputRingSince(int($params->{since}));
+	}
+	else
+	{
+		my $tail = defined($params->{tail}) ? int($params->{tail}) : 200;
+		($cur_seq,$entries,$overflow) = getOutputRingTail($tail);
+	}
+	return $this->api_json_response($request,{
+		seq      => $cur_seq,
+		overflow => $overflow,
+		lines    => $entries,
+	});
+}
+
+
+sub api_status
+	# GET /api/status
+	# Returns basic server liveness info.
+{
+	my ($this,$request,$params) = @_;
+	return $this->api_json_response($request,{
+		ok     => 1,
+		server => 'teensyBoat',
+		port   => $SERVER_PORT,
+	});
+}
 
 
 sub kml_track

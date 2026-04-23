@@ -70,6 +70,8 @@ my $binary_len:shared = 0;
 my $binary_got:shared = 0;
 my $binary_data:shared = '';
 
+my $ring_line_buf:shared   = '';
+my $ring_line_color:shared = 0;
 
 my $in_ansi:shared = 0;
 	# 1 = next byte is ansi_type
@@ -145,6 +147,7 @@ sub sendTeensyCommand
 sub consoleError
 {
 	my ($msg) = @_;
+	pushOutputRing("console Error: $msg", $DISPLAY_COLOR_ERROR);
 	$CONSOLE->Attr($DISPLAY_COLOR_ERROR);
 	print "console Error: $msg\n";
 	$CONSOLE->Attr($DISPLAY_COLOR_NONE);
@@ -153,6 +156,7 @@ sub consoleError
 sub consoleWarning
 {
 	my ($msg) = @_;
+	pushOutputRing("console Warning: $msg", $DISPLAY_COLOR_WARNING);
 	$CONSOLE->Attr($DISPLAY_COLOR_WARNING);
 	print "console Warning: $msg\n";
 	$CONSOLE->Attr($DISPLAY_COLOR_NONE);
@@ -161,6 +165,7 @@ sub consoleWarning
 sub consoleMsg
 {
 	my ($msg) = @_;
+	pushOutputRing("console: $msg", $DISPLAY_COLOR_NONE);
 	$CONSOLE->Attr($DISPLAY_COLOR_NONE);
 	print "console: $msg\n";
 }
@@ -168,6 +173,7 @@ sub consoleMsg
 sub consoleAttn
 {
 	my ($msg) = @_;
+	pushOutputRing("console: $msg", $DISPLAY_COLOR_LOG);
 	$CONSOLE->Attr($DISPLAY_COLOR_LOG);
 	print "console: $msg\n";
 	$CONSOLE->Attr($DISPLAY_COLOR_NONE);
@@ -606,6 +612,9 @@ sub handleComBytes
 				# print "binary_got=$binary_len=".length($binary_data)."\n";
 				# display_bytes(0,0,"binary_packet($binary_packet_counter) len($binary_len)",$binary_data);
 				push @$binary_queue,$binary_data;
+				my $btype = unpack("S",$binary_data);
+				pushOutputRing(sprintf("[BINARY pkt=%d type=0x%04X len=%d]",
+					$binary_packet_counter,$btype,$binary_len), $DISPLAY_COLOR_NONE);
 				initBinaryParser();
 			}
 		}
@@ -649,11 +658,15 @@ sub handleComBytes
 			{
 				$CONSOLE->Attr($ansi_attr);
 				$in_ansi = 3;
+				$ring_line_color = $ansi_attr;
 			}
 		}
 		elsif ($char eq "\n")
 		{
 			print $char;
+			pushOutputRing($ring_line_buf, $ring_line_color) if length($ring_line_buf);
+			$ring_line_buf = "";
+			$ring_line_color = 0;
 			if ($in_ansi)
 			{
 				$CONSOLE->Attr($DISPLAY_COLOR_NONE);
@@ -663,6 +676,7 @@ sub handleComBytes
 		else
 		{
 			print $char;
+			$ring_line_buf .= $char;
 		}
 	}
 }

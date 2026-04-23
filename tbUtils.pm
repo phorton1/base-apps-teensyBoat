@@ -24,7 +24,7 @@ use Pub::WX::AppConfig;
 # use tbResources;
 
 
-our $WITH_TB_SERVER = 0;
+our $WITH_TB_SERVER = 1;
 
 our $SHOW_DEGREE_MINUTES = 1;
 
@@ -138,6 +138,7 @@ Pub::Utils::initUtils();
 # createSTDOUTSemaphore("buddySTDOUT");
 setStandardTempDir($appName);
 setStandardDataDir($appName);
+enableOutputRing(2000);
 
 # but the ini file and shown title of the program get ($PROG_PARAM)
 

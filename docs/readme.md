@@ -5,12 +5,22 @@
 **[User Interface](user_interface.md)** --
 **[Integration](integration.md)**
 
+repos: **[phorton1](https://github.com/phorton1)** --
+**[teensyBoat Firmware](https://github.com/phorton1/Arduino-boat-teensyBoat/blob/master/docs/readme.md)** --
+**teensyBoat App** --
+**[Boat Library](https://github.com/phorton1/Arduino-libraries-Boat/blob/master/docs/readme.md)** --
+**[tbESP32 WiFi](https://github.com/phorton1/Arduino-boat-tbESP32/blob/master/docs/readme.md)** --
+**[teensyWind Tester](https://github.com/phorton1/Arduino-boat-teensyWind/blob/master/docs/readme.md)** --
+**[teensyGPS](https://github.com/phorton1/Arduino-boat-teensyGPS/blob/master/docs/readme.md)**
+
 **teensyBoat.pm** is a wxPerl desktop application for Windows that monitors and
 controls the **[teensyBoat.ino](https://github.com/phorton1/Arduino-boat-teensyBoat)**
 firmware running on a Teensy 4.0 microcontroller. It connects over USB serial or over
 UDP via a companion ESP32 WiFi bridge (tbESP32). The application provides real-time
 display of boat simulator state, SeaTalk protocol monitoring, virtual instrument
 configuration, and an HTTP API for remote control and automation.
+
+![teensyBoat.pm -- Prog window](images/teensyBoat_Prog.jpg)
 
 This app is one part of a three-repo system: the Perl application (this repo),
 the Teensy firmware, and the shared **[Boat library](https://github.com/phorton1/Arduino-libraries-Boat)**

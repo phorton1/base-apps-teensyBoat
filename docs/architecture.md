@@ -5,6 +5,14 @@
 **[User Interface](user_interface.md)** --
 **[Integration](integration.md)**
 
+repos: **[phorton1](https://github.com/phorton1)** --
+**[teensyBoat Firmware](https://github.com/phorton1/Arduino-boat-teensyBoat/blob/master/docs/readme.md)** --
+**teensyBoat App** --
+**[Boat Library](https://github.com/phorton1/Arduino-libraries-Boat/blob/master/docs/readme.md)** --
+**[tbESP32 WiFi](https://github.com/phorton1/Arduino-boat-tbESP32/blob/master/docs/readme.md)** --
+**[teensyWind Tester](https://github.com/phorton1/Arduino-boat-teensyWind/blob/master/docs/readme.md)** --
+**[teensyGPS](https://github.com/phorton1/Arduino-boat-teensyGPS/blob/master/docs/readme.md)**
+
 ## The Three-Repo System
 
 The teensyBoat system spans three repositories that work together:

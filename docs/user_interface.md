@@ -5,6 +5,14 @@
 **User Interface** --
 **[Integration](integration.md)**
 
+repos: **[phorton1](https://github.com/phorton1)** --
+**[teensyBoat Firmware](https://github.com/phorton1/Arduino-boat-teensyBoat/blob/master/docs/readme.md)** --
+**teensyBoat App** --
+**[Boat Library](https://github.com/phorton1/Arduino-libraries-Boat/blob/master/docs/readme.md)** --
+**[tbESP32 WiFi](https://github.com/phorton1/Arduino-boat-tbESP32/blob/master/docs/readme.md)** --
+**[teensyWind Tester](https://github.com/phorton1/Arduino-boat-teensyWind/blob/master/docs/readme.md)** --
+**[teensyGPS](https://github.com/phorton1/Arduino-boat-teensyGPS/blob/master/docs/readme.md)**
+
 ## Main Frame
 
 The application window is a **Pub::WX::Frame** with a toolbook (a tabbed notebook
@@ -24,18 +32,7 @@ on connect and whenever the firmware changes instrument state.
 
 The main grid is **9 instruments × 5 protocols**:
 
-```
-              SEATALK1  SEATALK2  NMEA0183A  NMEA0183B  NMEA2000
-  DEPTH         [ ]       [ ]       [ ]        [ ]        [ ]
-  LOG           [ ]       [ ]       [ ]        [ ]        [ ]
-  WIND          [ ]       [ ]       [ ]        [ ]        [ ]
-  COMPASS       [ ]       [ ]       [ ]        [ ]        [ ]
-  GPS           [ ]       [ ]       [ ]        [ ]        [ ]
-  AIS           [ ]       [ ]       [ ]        [ ]        [ ]
-  AP            [ ]       [ ]       [ ]        [ ]        [ ]
-  ENG           [ ]       [ ]       [ ]        [ ]        [ ]
-  GEN           [ ]       [ ]       [ ]        [ ]        [ ]
-```
+![teensyBoat.pm -- Prog window](images/teensyBoat_Prog.jpg)
 
 Each checkbox sends `I_<INSTNAME>=<port_mask>` to the firmware, where `port_mask`
 is a bitfield across all five ports for that instrument (bit 0 = ST1, bit 1 = ST2,
@@ -84,6 +81,12 @@ grid of labeled static-text fields. It is activated by `B_SIM=1` on open and
 `B_SIM=0` on close. Each `BINARY_TYPE_SIM` packet refreshes all fields; a field
 that changed since the last packet is shown in **red**, and reverts to black on
 the next packet if unchanged.
+
+![teensyBoat.pm -- BoatSim window](images/teensyBoat_Sim.jpg)
+
+Field values that changed since the previous packet are shown in **red**.
+With 50+ fields updating at 1 Hz, the red highlighting is the primary way
+to see at a glance what is actively moving in the simulation.
 
 The window is organized in three columns:
 
@@ -161,6 +164,14 @@ COG, latitude, and longitude to the HTTP server state, which feeds `/position.km
 
 The Seatalk window is a live browser of incoming SeaTalk protocol messages on ST1
 and ST2. It is activated by `B_ST=1` on open and `B_ST=0` on close.
+
+![teensyBoat.pm -- Seatalk window](images/teensyBoat_ST.jpg)
+
+Individual bytes within each datagram's **hex** column that changed since
+the last receipt of that message type are highlighted with a **red** background.
+This makes it easy to see which bytes within a specific datagram are varying
+across successive messages, without having to compare raw hex by eye.
+
 
 The window uses **tbListCtrl**, a custom list control that:
 

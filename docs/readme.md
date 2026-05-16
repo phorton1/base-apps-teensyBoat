@@ -3,7 +3,8 @@
 **Home** --
 **[Architecture](architecture.md)** --
 **[User Interface](user_interface.md)** --
-**[Integration](integration.md)**
+**[Integration](integration.md)** --
+**[Driving Guide](boat_driving_guide.md)**
 
 repos: **[phorton1](https://github.com/phorton1)** --
 **[teensyBoat Firmware](https://github.com/phorton1/Arduino-boat-teensyBoat/blob/master/docs/readme.md)** --
@@ -39,6 +40,11 @@ that defines the binary protocol used between them.
 - **[Integration](integration.md)** —
   Launching the app, firmware command reference, HTTP API endpoints, Google Earth
   KML integration, and connection to the Raymarine reverse-engineering project.
+
+- **[Driving Guide](boat_driving_guide.md)** --
+  HTTP API workflow for remote Claude sessions and external automation:
+  endpoints, the %3D encoding rule, route discovery, simulator state
+  queries, and the standard driving sequence.
 
 ## Credits
 

@@ -3,7 +3,8 @@
 **[Home](readme.md)** --
 **[Architecture](architecture.md)** --
 **[User Interface](user_interface.md)** --
-**Integration**
+**Integration** --
+**[Driving Guide](boat_driving_guide.md)**
 
 repos: **[phorton1](https://github.com/phorton1)** --
 **[teensyBoat Firmware](https://github.com/phorton1/Arduino-boat-teensyBoat/blob/master/docs/readme.md)** --
@@ -44,99 +45,47 @@ its own window title (`teensyBoat(N)`) and ini file (`teensyBoat.N.ini`).
 
 ## Firmware Command Reference
 
-Commands are plain ASCII text sent to the Teensy over serial or UDP.
-The format is `KEY=VALUE\r\n` for setters, or `VERB\r\n` for monadic commands.
-Full documentation is in the teensyBoat.ino repo; the key commands are summarized
-here for reference.
+The teensyBoat firmware accepts a comprehensive set of text commands --
+plain ASCII, case-insensitive, `KEY=VALUE` or `VERB` form,
+newline-terminated -- that drive the virtual boat simulator, configure
+virtual instrument output, control protocol monitoring, and toggle the
+binary streaming channels described below.
 
-### Simulator Control
+The full command reference is in the firmware repository:
+**[teensyBoat Commands](https://github.com/phorton1/Arduino-boat-teensyBoat/blob/master/docs/commands.md)**.
+That page is a denormalized superset of the
+**[Boat Library Commands](https://github.com/phorton1/Arduino-libraries-Boat/blob/master/docs/commands.md)**
+reference, which is the authoritative source for what each command does
+in terms of simulator and instrument state.
 
-| Command        | Effect                                                          |
-|----------------|-----------------------------------------------------------------|
-| RUN            | Start the simulator time loop (1 Hz ticks)                     |
-| STOP           | Pause the simulator; state is preserved                        |
-| ROUTE=name     | Load named route; teleport boat to wp 0; reset ap and routing  |
-| J=N            | Teleport boat to waypoint N; turn off ap and routing           |
-| WP=N           | Set navigation target to waypoint N; do not move boat          |
-| S=N            | Water speed (knots) — **must be > 0 for the boat to move**    |
-| H=N            | True heading (degrees) — overridden by autopilot each tick     |
-| DH=N           | Desired heading for autopilot (when not routing)               |
-| D=N            | Water depth (feet)                                             |
-| WA=N           | True wind angle (degrees from)                                 |
-| WS=N           | True wind speed (knots)                                        |
-| CS=N           | Current set (degrees true)                                     |
-| CD=N           | Current drift (knots)                                          |
-| RPM=N          | Engine RPM                                                     |
-| GEN=0/1        | Start / stop the genset                                        |
-| AP=0/1         | Disable / enable autopilot AUTO mode                           |
-| R=0/1          | Disable / enable routing (R=1 also enables AP AUTO)            |
+This application sends user-issued commands unchanged via the USB serial
+connection and via the HTTP `/api/command` endpoint (see
+[HTTP API](#http-api-tbserver) below).
 
-When routing is on and the boat reaches the final waypoint, both routing and
-the autopilot are turned off and water speed is set to zero.
+### Commands this application emits
 
-### Virtual Instrument Assignment
+In addition to forwarding user-issued commands, **teensyBoat.pm** itself
+emits a small set of commands as part of its window lifecycle.  These
+toggle the firmware's binary streaming channels so that only the data
+corresponding to currently-open windows is being transmitted, and
+synchronize the firmware's clock.
 
-Each instrument can be configured to output on any combination of the five protocols.
-The mask is a bitfield: bit 0 = ST1, bit 1 = ST2, bit 2 = 83A, bit 3 = 83B, bit 4 = 2000.
+| Command       | Emitted when                              | Purpose                                                |
+|---------------|-------------------------------------------|--------------------------------------------------------|
+| `DT=...`      | On startup, from tbFrame.pm               | Set the firmware's RTC from the local clock (UTC)      |
+| `STATE`       | On winProg open                           | Refresh the application's view of firmware state       |
+| `B_PROG=N`    | winProg open (N=1) / close (N=0)          | Toggle `BINARY_TYPE_PROG` instrument config packets    |
+| `B_SIM=N`     | winBoatSim open / close                   | Toggle `BINARY_TYPE_SIM` simulator state packets       |
+| `B_ST=N`      | winST open / close                        | Toggle `BINARY_TYPE_ST1` + `BINARY_TYPE_ST2` packets   |
 
-```
-I_DEPTH=mask       I_LOG=mask         I_WIND=mask
-I_COMPASS=mask     I_GPS=mask         I_AIS=mask
-I_AP=mask          I_ENG=mask         I_GEN=mask
-```
-
-To turn all instruments on or off for a given port:
-
-```
-I_ST1=N    I_ST2=N    I_83A=N    I_83B=N    I_2000=N
-```
-
-### Protocol Forwarding and Monitoring
-
-```
-FWD=bitmask           # bit0=ST1→ST2, bit1=ST2→ST1, bit2=83A→83B, bit3=83B→83A
-E80_FILTER=0/1        # suppress E80-generated SeaTalk echo
-M_ST1=N               # ST1 monitoring verbosity (hex value)
-M_ST2=N               # ST2 monitoring verbosity
-M_83A=N               # NMEA0183A monitoring verbosity
-M_83B=N               # NMEA0183B monitoring verbosity
-M_2000=N              # NMEA2000 monitoring verbosity
-```
-
-### Binary Streaming
-
-The Perl app activates binary output by window:
-
-```
-B_PROG=1/0     # winProg instrument state packets (BINARY_TYPE_PROG)
-B_SIM=1/0      # winBoatSim simulator state packets (BINARY_TYPE_SIM)
-B_ST=1/0       # winST SeaTalk monitor packets (BINARY_TYPE_ST1/ST2)
-```
-
-### Configuration and System
-
-```
-LOAD           # load instrument config from firmware EEPROM
-SAVE           # save instrument config to firmware EEPROM
-CLEAR          # reset instrument state
-STATE          # send current instrument state as BINARY_TYPE_PROG packet
-DT=YYYY-MM-DD HH:MM:SS    # set firmware RTC (UTC)
-GP8_MODE=OFF/SPEED/WIND/ESP32    # GP8 hardware output mode
-```
-
-### Simulator Query
-
-```
-SIM            # print current simulator state to serial output
-ROUTES         # list all routes with waypoint counts
-ROUTE_WPS=name # list all waypoints in the named route
-?              # show command summary
-help           # show detailed help
-```
+The other binary streaming channels (`B_0183`, `B_2000`, `B_BOAT`) are
+not wired to any application window today; the corresponding firmware
+output remains off unless toggled manually from the console or via the
+HTTP API.
 
 ## HTTP API (tbServer)
 
-The HTTP server runs on **port 9881** when `$WITH_TB_SERVER = 1` (the default).
+The HTTP server runs on **port 9881**.
 It is designed for external tools and automation — including remote control from
 Claude Code sessions.
 
@@ -218,4 +167,4 @@ data management system built on that work.
 
 ---
 
-**Next:** [Home](readme.md)
+**Next:** [Driving Guide](boat_driving_guide.md)

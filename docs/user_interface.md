@@ -3,7 +3,8 @@
 **[Home](readme.md)** --
 **[Architecture](architecture.md)** --
 **User Interface** --
-**[Integration](integration.md)**
+**[Integration](integration.md)** --
+**[Driving Guide](boat_driving_guide.md)**
 
 repos: **[phorton1](https://github.com/phorton1)** --
 **[teensyBoat Firmware](https://github.com/phorton1/Arduino-boat-teensyBoat/blob/master/docs/readme.md)** --

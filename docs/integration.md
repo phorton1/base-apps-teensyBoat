@@ -76,6 +76,7 @@ synchronize the firmware's clock.
 | `STATE`       | On winProg open                           | Refresh the application's view of firmware state       |
 | `B_PROG=N`    | winProg open (N=1) / close (N=0)          | Toggle `BINARY_TYPE_PROG` instrument config packets    |
 | `B_SIM=N`     | winBoatSim open / close                   | Toggle `BINARY_TYPE_SIM` simulator state packets       |
+| `B_AIS=N`     | winAIS open / close                       | Toggle `BINARY_TYPE_AIS` virtual AIS target packets    |
 | `B_ST=N`      | winST open / close                        | Toggle `BINARY_TYPE_ST1` + `BINARY_TYPE_ST2` packets   |
 
 The other binary streaming channels (`B_0183`, `B_2000`, `B_BOAT`) are

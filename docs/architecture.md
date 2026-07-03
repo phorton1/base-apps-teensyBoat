@@ -125,6 +125,7 @@ parser if a packet is not completed in time.
 | BINARY_TYPE_PROG   | 0x0001 | STATE / I_ commands  | winProg      |
 | BINARY_TYPE_SIM    | 0x0002 | B_SIM=1              | winBoatSim   |
 | BINARY_TYPE_BOAT   | 0x0004 | (reserved)           | —            |
+| BINARY_TYPE_AIS    | 0x0008 | B_AIS=1              | winAIS       |
 | BINARY_TYPE_ST1    | 0x0010 | B_ST=1               | winST        |
 | BINARY_TYPE_ST2    | 0x0020 | B_ST=1               | winST        |
 | BINARY_TYPE_0183A  | 0x0100 | (vestigial)          | —            |

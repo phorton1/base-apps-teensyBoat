@@ -23,6 +23,7 @@ use tbBinary;
 use winProg;
 use winBoatSim;
 use winST;
+use winAIS;
 use base qw(Pub::WX::Frame);
 
 
@@ -61,6 +62,7 @@ sub new
 	EVT_MENU($this, $WIN_PROG, \&onCommand);
 	EVT_MENU($this, $WIN_BOAT_SIM, \&onCommand);
 	EVT_MENU($this, $WIN_SEATALK, \&onCommand);
+	EVT_MENU($this, $WIN_AIS, \&onCommand);
     EVT_IDLE($this, \&onIdle);
 
 	if ($NMEA0183_COMPORT)
@@ -98,6 +100,7 @@ sub onIdle
 	my $prog_window = $this->findPane($WIN_PROG);
 	my $boat_sim = $this->findPane($WIN_BOAT_SIM);
 	my $st_window = $this->findPane($WIN_SEATALK);
+	my $ais_window = $this->findPane($WIN_AIS);
 
 	if ($TB_ONLINE)
 	{
@@ -106,6 +109,7 @@ sub onIdle
 		$prog_window->initTBCommands() if $prog_window;
 		$boat_sim->initTBCommands() if $boat_sim;
 		$st_window->initTBCommands() if $st_window;
+		$ais_window->initTBCommands() if $ais_window;
 
 		# sendTeensyCommand("B_0183=1") if $NMEA0183_COMPORT;
 
@@ -130,6 +134,10 @@ sub onIdle
 		elsif ($type == $BINARY_TYPE_SIM)
 		{
 			$boat_sim->handleBinaryData($counter,$type,$packet) if $boat_sim;
+		}
+		elsif ($type == $BINARY_TYPE_AIS)
+		{
+			$ais_window->handleBinaryData($counter,$type,$packet) if $ais_window;
 		}
 		elsif ($type == $BINARY_TYPE_ST1 || $type == $BINARY_TYPE_ST2)
 		{
@@ -166,6 +174,7 @@ sub createPane
 	return winProg->new($this,$book,$id,$data) if $id == $WIN_PROG;
 	return winBoatSim->new($this,$book,$id,$data) if $id == $WIN_BOAT_SIM;
 	return winST->new($this,$book,$id,$data) if $id == $WIN_SEATALK;
+	return winAIS->new($this,$book,$id,$data) if $id == $WIN_AIS;
     return $this->SUPER::createPane($id,$book,$data);
 }
 
@@ -177,7 +186,8 @@ sub onCommand
     my $id = $event->GetId();
 	if ($id == $WIN_PROG ||
 		$id == $WIN_BOAT_SIM ||
-		$id == $WIN_SEATALK)
+		$id == $WIN_SEATALK ||
+		$id == $WIN_AIS)
 	{
     	my $pane = $this->findPane($id);
 		display($dbg_frame,0,"$appName onCommand($id) pane="._def($pane));

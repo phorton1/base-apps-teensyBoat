@@ -20,6 +20,7 @@ BEGIN
 		$WIN_PROG
         $WIN_BOAT_SIM
 		$WIN_SEATALK
+		$WIN_AIS
     );
 }
 
@@ -31,7 +32,8 @@ BEGIN
 
 our ($WIN_PROG,
 	 $WIN_BOAT_SIM,
-	 $WIN_SEATALK) = (10000..11000);
+	 $WIN_SEATALK,
+	 $WIN_AIS) = (10000..11000);
 
 
 # Pane data that allows looking up of notebook for windows
@@ -41,6 +43,7 @@ my %pane_data = (
 	$WIN_PROG		=> ['Unused String1',		'content'	],
 	$WIN_BOAT_SIM	=> ['Unused String1',		'content'	],
 	$WIN_SEATALK	=> ['Unused String2',		'content'	],
+	$WIN_AIS		=> ['Unused String3',		'content'	],
 );
 
 
@@ -52,6 +55,7 @@ my %command_data = (%{$resources->{command_data}},
 	$WIN_PROG     	=> ['Prog', 	'Open the Program Control window'],
 	$WIN_BOAT_SIM	=> ['BoatSim', 	'Open the Boat Simulator window'],
 	$WIN_SEATALK	=> ['Seatalk',	'Open the Seatalk window'],
+	$WIN_AIS		=> ['AIS',		'Open the virtual AIS Targets window'],
 );
 
 
@@ -69,6 +73,7 @@ my @view_menu = (
 	$WIN_PROG,
 	$WIN_BOAT_SIM,
 	$WIN_SEATALK,
+	$WIN_AIS,
 	$ID_SEPARATOR,
 );
 
